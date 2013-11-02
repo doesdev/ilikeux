@@ -1,0 +1,153 @@
+/* Imports */
+@import url(http://fonts.googleapis.com/css?family=Paytone+One);
+
+/* Resets */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    vertical-align: baseline;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    z-index: 1;
+}
+
+body {
+    font-size: 100%;
+    line-height: 1;
+}
+
+ol, ul {
+    list-style: none;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/* Colors
+
+Austin Power - https://kuler.adobe.com/Austin-Power-color-theme-3156071/
+#60A9DC - blue light, havelock
+#7FC3F4 - blue lighter, malibu
+#6D7275 - grey dark, nevada
+#A4A6A5 - grey, edward
+#ED4511 - red, pomegranate
+
+Variants
+#C7C8C8 - grey light, silver-sand
+#C6C8C7 - grey light, pumice
+#F48460 - red light, sandy
+#ABD8F8 - blue lightest, sail
+*/
+
+/* Page Setup */
+html, body {
+    min-width: 100%;
+    min-height: 100%;
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    position: relative;
+    background: #ffffff;
+}
+
+/* Shared Classes */
+.text-centered {
+    text-align: center;
+}
+
+.text-white {
+    color: #ffffff;
+}
+
+.text-nevada {
+    color: #6D7275;
+}
+
+.text-stroked-black {
+    text-shadow:
+        3px 3px 0 #000000,
+        -1px -1px 0 #000000,
+        1px -1px 0 #000000,
+        -1px 1px 0 #000000,
+        1px 1px 0 #000000;
+}
+
+.box {
+    float: left;
+    margin: 4px;
+    border-radius: 4px;
+    z-index: 0;
+}
+
+.box-havelock {
+    border: 1px solid #60A9DC;
+    background: rgba(96, 169, 220, 0.5);
+}
+
+.box-malibu {
+    border: 1px solid #7FC3F4;
+    background: rgba(127, 195, 244, 0.5);
+}
+
+.box-nevada {
+    border: 1px solid #6D7275;
+    background: rgba(109, 114, 117, 0.5);
+}
+
+.box-edward {
+    border: 1px solid #A4A6A5;
+    background: rgba(164, 166, 165, 0.5);
+}
+
+.box-pomegranate {
+    border: 1px solid #ED4511;
+    background: rgba(237, 69, 17, 0.5);
+}
+
+/* Typography */
+h1 {
+    font-family: 'Paytone One', sans-serif;
+    font-size: 2.5em;
+}
+
+/* Layout */
+header {
+    margin: 0 auto;
+    padding: 10px 30px;
+    border: 1px solid #ED4511;
+    background: rgba(237, 69, 17, 0.95);
+    border-radius: 4px;
+}
+
+/* Theme */
+#boxes {
+    position: fixed;
+    display: block;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+#content-wrapper {
+    position: fixed;
+    display: block;
+    width: 100%;
+    height: 100%;
+}
