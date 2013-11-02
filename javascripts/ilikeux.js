@@ -1,27 +1,11 @@
 (function ($, window, document) {
 
     function boxesText() {
+        var sentence;
+        sentence = ["this", "is", "just", "an", "excuse", "to", "play", "around", "with", "js"];
         $(".box").each(function (i) {
-            if (i === 0) {
-                this.innerHTML = "this";
-            } else if (i === 11) {
-                this.innerHTML = "is";
-            } else if (i === 22) {
-                this.innerHTML = "just";
-            } else if (i === 33) {
-                this.innerHTML = "an";
-            } else if (i === 44) {
-                this.innerHTML = "excuse";
-            } else if (i === 55) {
-                this.innerHTML = "to";
-            } else if (i === 66) {
-                this.innerHTML = "play";
-            } else if (i === 77) {
-                this.innerHTML = "around";
-            } else if (i === 88) {
-                this.innerHTML = "with";
-            } else if (i === 99) {
-                this.innerHTML = "js";
+            if (i % 10 === 0) {
+                $(this).append('<p>' + sentence[i.toString().charAt(0)] + '</p>');
             }
         });
     }

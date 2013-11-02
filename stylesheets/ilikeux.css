@@ -91,15 +91,20 @@ body {
 }
 
 .box {
+    position: relative;
     float: left;
     margin: 4px;
     border-radius: 4px;
+    z-index: 0;
+}
+
+.box p {
+    margin-top: 20%;
     text-align: center;
     font-size: 1em;
     font-weight: 800;
     color: rgba(0, 0, 0, 0.5);
-    line-height: 3;
-    z-index: 0;
+    word-wrap: break-word;
 }
 
 .box-havelock {
