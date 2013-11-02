@@ -1,5 +1,6 @@
 /* Imports */
 @import url(http://fonts.googleapis.com/css?family=Paytone+One);
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,800,600);
 
 /* Resets */
 html, body, div, span, applet, object, iframe,
@@ -93,6 +94,11 @@ body {
     float: left;
     margin: 4px;
     border-radius: 4px;
+    text-align: center;
+    font-size: 1em;
+    font-weight: 800;
+    color: rgba(0, 0, 0, 0.5);
+    line-height: 3;
     z-index: 0;
 }
 
@@ -127,12 +133,16 @@ h1 {
     font-size: 2.5em;
 }
 
+h3, p, div, a, li {
+    font-family: 'Open Sans', sans-serif;
+}
+
 /* Layout */
 header {
-    margin: 0 auto;
+    margin: 4px;
     padding: 10px 30px;
     border: 1px solid #ED4511;
-    background: rgba(237, 69, 17, 0.95);
+    background: rgba(237, 69, 17, 0.85);
     border-radius: 4px;
 }
 
