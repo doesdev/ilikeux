@@ -12,16 +12,28 @@
 </head>
 <body>
 
-<div id="boxes"></div>
-
 <div id="content-wrapper">
     <header>
         <h1 class="text-centered text-white text-stroked-black">I'm Andrew Carpenter and I like UX</h1>
     </header>
 
-    <div id="content-main">
-
-    </div>
 </div>
+<div id="boxes"></div>
+
+
+<script src="javascripts/jquery-fun-with-boxes.js"></script>
+<script>
+    $(function() {
+        $("#boxes").jqueryFunWithBoxes({
+            boxes_x: 10,
+            boxes_y: 10,
+            rounded: 0,
+            fill_opacity: 0.6,
+            fill_colors: ['#60A9DC', '#7FC3F4', '#6D7275', '#A4A6A5', '#ED4511'],
+            border_size: 0,
+            border_same_as_fill: 1
+        });
+    });
+</script>
 </body>
 </html>
