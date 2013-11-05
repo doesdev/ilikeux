@@ -1,11 +1,44 @@
 (function ($, window, document) {
 
+    function randomNumbers(from, to) {
+        return Math.floor(Math.random() * (to - from) + from);
+    }
+
+    function randomBoxInRow(i) {
+        var min, max;
+        min = (Math.round(i / 10) * 10) + 1;
+        max = min + 8;
+        return randomNumbers(min, max);
+    }
+
     function boxesText() {
         var sentence;
         sentence = ["this", "is", "just", "an", "excuse", "to", "play", "around", "with", "js"];
         $(".box").each(function (i) {
             if (i % 10 === 0) {
                 $(this).append('<p>' + sentence[i.toString().charAt(0)] + '</p>');
+            }
+        });
+    }
+
+    function boxesImages() {
+        var images, random_int, boxes, box_for_img;
+        images = ["andrew", "focassign", "ifid", "jqvl", "musocrat"];
+        boxes = $(".box");
+        random_int = randomNumbers(15, 20);
+        box_for_img = $.grep(boxes, function (obj, i) {
+            if (i % random_int === 0 && i !== 0) {
+                return randomBoxInRow(i);
+            }
+        });
+//        console.log(box_for_img);
+        $.each(box_for_img, function (i, obj) {
+            if (images[i] !== undefined) {
+                boxes[obj.toString()].append('<img src="images/' + images[i] + '.png" />');
+                boxes[obj.toString()].children("img").css({
+                    width: $(this).outerWidth()
+//                    height: $(this).height()
+                });
             }
         });
     }
@@ -21,7 +54,7 @@
         colors = ["havelock", "malibu", "nevada", "edward", "pomegranate"];
 
         while (i < 100) {
-            border = colors[Math.floor(Math.random() * colors.length)];
+            border = colors[randomNumbers(0, colors.length)];
             boxes_wrapper.append('<div class="box box-' + border + '"></div>');
             boxes_wrapper.find('.box').css({
                 width: box_width,
@@ -30,6 +63,7 @@
             i = i + 1;
         }
         boxesText();
+        boxesImages();
     }
 
     function boxesStart() {
@@ -49,8 +83,8 @@
         } else {
             fontScaling(125);
         }
-        boxesStart();
-        boxBuilder();
+//        boxesStart();
+//        boxBuilder();
     }
 
     $(window).on("resize", function () {
