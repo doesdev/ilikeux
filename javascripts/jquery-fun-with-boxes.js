@@ -1,3 +1,5 @@
+// jQuery fun with boxes developed by Andrew Carpenter. For fun.
+
 (function ($, window, document) {
 
     var pluginName = "jqueryFunWithBoxes",
