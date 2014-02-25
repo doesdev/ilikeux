@@ -10,7 +10,8 @@
             border_color: "#000",
             border_same_as_fill: 0,
             fill_colors: "#fff",
-            fill_opacity: 1
+            fill_opacity: 1,
+            animation_time: 0
         };
 
     function FunWithBoxes(element, options) {
@@ -22,8 +23,13 @@
     FunWithBoxes.prototype = {
         init: function () {
 
+            var settings = this.base_settings;
             function createBoxes() {
                 $(this.boxBuilder());
+            }
+
+            if (settings.animation_time > 0) {
+                window.setInterval($.proxy(createBoxes, this), settings.animation_time);
             }
 
             $(window).on('resize', $.proxy(createBoxes, this));
