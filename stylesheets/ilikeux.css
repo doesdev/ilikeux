@@ -68,6 +68,10 @@ body {
     background: #ffffff;
 }
 
+a {
+    cursor: pointer;
+}
+
 /* Shared Classes */
 .text-centered {
     text-align: center;
