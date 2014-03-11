@@ -1,4 +1,4 @@
-###A little site about me and my desire to make beautiful things. That's it.
+###My little js playground
 
 ======================
 
