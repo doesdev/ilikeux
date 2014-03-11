@@ -4,7 +4,7 @@
 
   $(function() {
     var Player, bufferBuilder, buffersPause, buffersPlay, buffersReset, buffersStop, rmFromArray, test_parts;
-    window.musocrat = {};
+    window.musocrat = window.musocrat || {};
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
     musocrat.context = new AudioContext();
     musocrat.sync = musocrat.sync || 0;
@@ -296,8 +296,13 @@
     $("#load-defaults").on('click', function() {
       return test_parts();
     });
-    $("#playall").on('click', function() {
-      return musocrat.composer('playall');
+    $("#player-inner-circle").on('click', function() {
+      console.log(musocrat.buffers.playing.length);
+      if (musocrat.buffers.playing.length > 0) {
+        return musocrat.composer('pauseall');
+      } else {
+        return musocrat.composer('playall');
+      }
     });
     $("#pauseall").on('click', function() {
       return musocrat.composer('pauseall');

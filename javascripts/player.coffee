@@ -1,6 +1,6 @@
 $ ->
 
-  window.musocrat = {}
+  window.musocrat = window.musocrat || {}
 
   # ToDo: log all audio decoding / playback errors to server
 
@@ -227,8 +227,12 @@ $ ->
   $("#load-defaults").on 'click', () ->
     test_parts()
 
-  $("#playall").on 'click', () ->
-    musocrat.composer('playall')
+  $("#player-inner-circle").on 'click', () ->
+    console.log musocrat.buffers.playing.length
+    if musocrat.buffers.playing.length > 0
+      musocrat.composer('pauseall')
+    else
+      musocrat.composer('playall')
 
   $("#pauseall").on 'click', () ->
     musocrat.composer('pauseall')
