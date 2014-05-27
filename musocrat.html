@@ -26,7 +26,7 @@
   </div>
   <div id="columns">
     <div id="column-1">
-      <div id="blog-column">
+      <div id="blog-column" class="tut">
         
           <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 413px;"><div id="article-wrapper" style="overflow: hidden; width: auto; height: 413px;">
             <div id="article-cover">
@@ -38,7 +38,7 @@
           
           
         
-        <div id="articles-wrapper">
+        <div id="articles-wrapper" class="tut2">
           <div id="blog-pagination">
             <div id="article-previous">
               <a class="articles_jump" data-remote="true" href="">‹ prev</a>
@@ -76,11 +76,11 @@
         </div>
       </div>
     </div>
-    <div id="column-2">
+    <div id="column-2" class="tut">
       
         <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 661px;"><div id="column-2-wrap" style="overflow: hidden; width: auto; height: 661px;">
           <div id="song-wrapper">
-            <div id="player-wrapper">
+            <div id="player-wrapper" class="tut2">
               <div id="player-col-1"></div>
               <div id="player-col-2">
                 <div id="player-outer-circle"></div>
@@ -156,7 +156,7 @@
         
       
     </div>
-    <div id="column-3">
+    <div id="column-3" class="tut">
       <div id="uc_wrapper">
         <img alt="Avatar" height="180" id="uc_avatar" src="images/avatar.png" width="180">
         <div class="text-center">
@@ -180,5 +180,17 @@
   <div id="footer"></div>
   <script data-turbolinks-track="true" src="javascripts/musocrat.js"></script>
   <script src="javascripts/player.js"></script>
+  <script src="javascripts/miss.js"></script>
+  <script>
+      miss.settings({
+          backdrop_color: '#ff9900'
+      });
+      miss(".tut", {
+          order: 1
+      });
+      miss(".tut2", {
+          order: 2
+      });
+  </script>
 
 </body></html>
