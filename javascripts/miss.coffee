@@ -8,7 +8,6 @@
       order: 'series'
       background_color: '#000'
       font_color: '#000'
-      z_index: 2100
 
     if selector
       els = document.querySelectorAll.call document, selector
@@ -23,7 +22,8 @@
       @index = i
       @opts = extend(opts, miss.global)
 
-      backdrop(1, opts.backdrop_color, opts.backdrop_opacity)
+      # test functions calls ToDo: remove these and implement them proper like
+      backdrop(1)
 
     logElement: () => console.log @el.innerHTML
 
@@ -46,18 +46,30 @@
     return "#" + prepHex(hex)
 
   # Backdrop
-  backdrop = (toggle, color = null, opacity = null) ->
+  backdrop = (toggle) ->
     unless document.getElementById('miss_bd')
-      rgb = colorConvert(color)
+      opts =  miss.global
+      rgb = colorConvert(opts.backdrop_color)
       bd = document.createElement("div")
       bd.id = 'miss_bd'
-      bd.style.backgroundColor = "rgba(#{rgb.red}, #{rgb.green}, #{rgb.blue}, #{opacity})"
+      bd.style.backgroundColor = "rgba(#{rgb.red}, #{rgb.green}, #{rgb.blue}, #{opts.backdrop_opacity})"
       bd.style.position = 'fixed'
+      bd.style.zIndex = opts.z_index
       bd.style.top = 0; bd.style.right = 0; bd.style.bottom = 0; bd.style.left = 0
       bd.style.display = 'none'
       document.body.appendChild(bd)
     bd = document.getElementById('miss_bd')
     if bd.style.display == 'none' && toggle == 1 then bd.style.display = "" else bd.style.display = 'none'
+
+  # Get element coordinates
+  coords = (el) ->
+    box = el.getBoundingClientRect()
+    top: box.top
+    right: box.right
+    bottom: box.bottom
+    right: box.left
+    height: box.height || box.bottom - box.top
+    width: box.width || box.right - box.left
 
   # Global settings
   miss.settings = (set) ->
@@ -69,7 +81,20 @@
       key_hover: null
       backdrop_color: '#000'
       backdrop_opacity: 0.3
+      z_index: 2100
     , set)
+
+  # Plugin states
+  miss.on = () ->
+    backdrop(1)
+
+  miss.off = () ->
+    backdrop(0)
+
+  miss.destroy = () =>
+    el = document.getElementById("miss_bd")
+    el.parentNode.removeChild(el)
+    delete this.miss
 
   this.miss = miss
 

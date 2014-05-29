@@ -3,7 +3,7 @@
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   (function(document) {
-    var Miss, backdrop, colorConvert, extend, fullHex, miss, prepHex;
+    var Miss, backdrop, colorConvert, coords, extend, fullHex, miss, prepHex;
     miss = function(selector, options) {
       var defaults, el, els, i, sel, _i, _len, _results;
       if (selector == null) {
@@ -19,8 +19,7 @@
       defaults = {
         order: 'series',
         background_color: '#000',
-        font_color: '#000',
-        z_index: 2100
+        font_color: '#000'
       };
       if (selector) {
         els = document.querySelectorAll.call(document, selector);
@@ -39,7 +38,7 @@
         this.el = el;
         this.index = i;
         this.opts = extend(opts, miss.global);
-        backdrop(1, opts.backdrop_color, opts.backdrop_opacity);
+        backdrop(1);
       }
 
       Miss.prototype.logElement = function() {
@@ -74,20 +73,16 @@
     fullHex = function(hex) {
       return "#" + prepHex(hex);
     };
-    backdrop = function(toggle, color, opacity) {
-      var bd, rgb;
-      if (color == null) {
-        color = null;
-      }
-      if (opacity == null) {
-        opacity = null;
-      }
+    backdrop = function(toggle) {
+      var bd, opts, rgb;
       if (!document.getElementById('miss_bd')) {
-        rgb = colorConvert(color);
+        opts = miss.global;
+        rgb = colorConvert(opts.backdrop_color);
         bd = document.createElement("div");
         bd.id = 'miss_bd';
-        bd.style.backgroundColor = "rgba(" + rgb.red + ", " + rgb.green + ", " + rgb.blue + ", " + opacity + ")";
+        bd.style.backgroundColor = "rgba(" + rgb.red + ", " + rgb.green + ", " + rgb.blue + ", " + opts.backdrop_opacity + ")";
         bd.style.position = 'fixed';
+        bd.style.zIndex = opts.z_index;
         bd.style.top = 0;
         bd.style.right = 0;
         bd.style.bottom = 0;
@@ -102,6 +97,18 @@
         return bd.style.display = 'none';
       }
     };
+    coords = function(el) {
+      var box;
+      box = el.getBoundingClientRect();
+      return {
+        top: box.top,
+        right: box.right,
+        bottom: box.bottom,
+        right: box.left,
+        height: box.height || box.bottom - box.top,
+        width: box.width || box.right - box.left
+      };
+    };
     miss.settings = function(set) {
       return miss.global = extend({
         theme: null,
@@ -110,9 +117,24 @@
         key_off: null,
         key_hover: null,
         backdrop_color: '#000',
-        backdrop_opacity: 0.3
+        backdrop_opacity: 0.3,
+        z_index: 2100
       }, set);
     };
+    miss.on = function() {
+      return backdrop(1);
+    };
+    miss.off = function() {
+      return backdrop(0);
+    };
+    miss.destroy = (function(_this) {
+      return function() {
+        var el;
+        el = document.getElementById("miss_bd");
+        el.parentNode.removeChild(el);
+        return delete _this.miss;
+      };
+    })(this);
     return this.miss = miss;
   })(document);
 
