@@ -23,8 +23,8 @@
       @coords = coords(@el)
       @order = @el.dataset.missOrder || 100 + i
       @opts = extend(opts, miss.global)
-      @title = @el.dataset.missTitle || ''
-      @msg = if @el.dataset.missMsg then message(@el.dataset.missMsg) else ''
+      @title = @el.dataset.missTitle || null
+      @msg = if @el.dataset.missMsg then message(@el.dataset.missMsg) else null
 
       # Functions called on initialize
       backdrop(true) # ToDo: move this where it belongs
@@ -41,7 +41,7 @@
       box.style.top = "#{@gravity.x}px"
       box.style.left = "#{@gravity.y}px"
       title_box = document.createElement('div')
-      title_box.className = 'miss-title'
+      title_box.className = 'miss-titlebar'
       title_box.innerHTML = @title
       msg_box = document.createElement('div')
       msg_box.className = 'miss-msg'
@@ -82,9 +82,6 @@
   prepHex = (hex) ->
     hex = (if (hex.charAt(0) is "#") then hex.split("#")[1] else hex)
     return if hex.length is 3 then hex + hex else hex
-
-  fullHex = (hex) ->
-    return "#" + prepHex(hex)
 
   # Get element coordinates
   coords = (el) ->
@@ -155,8 +152,8 @@
 
   # Format message
   message = (msg) ->
-    if (/{(.*?)}/.test(msg))
-      msg_el = document.querySelector(msg.match(/{(.*?)}/)[1])
+    if (/#{(.*?)}/.test(msg))
+      msg_el = document.querySelector(msg.match(/#{(.*?)}/)[1])
       showHideEl(msg_el, false)
       return msg_el.innerHTML
     else
