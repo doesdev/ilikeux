@@ -26,7 +26,7 @@
   </div>
   <div id="columns">
     <div id="column-1">
-      <div id="blog-column" class="tut">
+      <div id="blog-column" class="tut" data-miss-order="1" data-miss-title="test title" data-miss-msg="this is the body of the tutorial target. put stuff here">
         
           <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 413px;"><div id="article-wrapper" style="overflow: hidden; width: auto; height: 413px;">
             <div id="article-cover">
@@ -38,7 +38,7 @@
           
           
         
-        <div id="articles-wrapper" class="tut2">
+        <div id="articles-wrapper">
           <div id="blog-pagination">
             <div id="article-previous">
               <a class="articles_jump" data-remote="true" href="">‹ prev</a>
@@ -84,7 +84,16 @@
               <div id="player-col-1"></div>
               <div id="player-col-2">
                 <div id="player-outer-circle"></div>
-                <div id="player-inner-circle">
+                <div id="player-inner-circle" class="tut2" data-miss-order="2" data-miss-title="test title" data-miss-msg="#{#tut2-msg-test}">
+                    <div hidden id="tut2-msg-test"><p>We added this text in it's own element and we use the hash-curly wrapper around the selector to point miss.js to it. It is a tutorial target (tut2[0]) message body.</p><br>
+                        <p>Adding this within a data attribute would be dumb, Because the content is way to big for a data attribute and we are adding child elements to the content.</p>
+                        <ul>
+                            <li>do not</li>
+                            <li>ever</li>
+                            <li>try this inside a data attribute</li>
+                            <li>because that would be dumb</li>
+                        </ul>
+                    </div>
                   <div id="play-button-top"></div>
                   <div id="play-button-bottom"></div>
                 </div>

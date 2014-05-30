@@ -6,7 +6,8 @@
     miss.settings() unless miss.global
     defaults =
       order: 'series'
-      background_color: '#000'
+      background_color: '#f5f5f5'
+      titlebar_color: '#939393'
       font_color: '#000'
 
     if selector
@@ -19,15 +20,55 @@
   class Miss
     constructor: (el, i, opts) ->
       @el = el
-      @index = i
+      @coords = coords(@el)
+      @order = @el.dataset.missOrder || 100 + i
       @opts = extend(opts, miss.global)
+      @title = @el.dataset.missTitle || ''
+      @msg = if @el.dataset.missMsg then message(@el.dataset.missMsg) else ''
 
-      # test functions calls ToDo: remove these and implement them proper like
-      backdrop(1)
+      # Functions called on initialize
+      backdrop(true) # ToDo: move this where it belongs
+      unless !(@title || @msg)
+        @gravity = gravity(@coords)
+        this.buildBox()
 
-    logElement: () => console.log @el.innerHTML
+    buildBox: () =>
+      # create elements with data
+      box = document.createElement('div')
+      box.id = "miss_#{@order}"
+      box.className = 'miss-box'
+      box.style.position = 'fixed'
+      box.style.top = "#{@gravity.x}px"
+      box.style.left = "#{@gravity.y}px"
+      title_box = document.createElement('div')
+      title_box.className = 'miss-title'
+      title_box.innerHTML = @title
+      msg_box = document.createElement('div')
+      msg_box.className = 'miss-msg'
+      msg_box.innerHTML = @msg
+      # apply (minimal) styling
+      unless miss.global.theme
+        box.style.backgroundColor = @opts.background_color
+        box.style.borderRadius = "3px"
+        box.style.maxWidth = "20%"
+        box.style.maxHeight = "40%"
+        title_box.style.backgroundColor = @opts.titlebar_color
+        title_box.style.borderTopLeftRadius = "3px"
+        title_box.style.borderTopRightRadius = "3px"
+        title_box.style.padding = '8px'
+        msg_box.style.padding = '8px'
+        li.style.listStyle = 'disc inside' for li in msg_box.querySelectorAll('li')
+      # add them to DOM
+      box.appendChild(title_box)
+      box.appendChild(msg_box)
+      miss.bd.appendChild(box)
 
-  # Property normalization
+  # Helpers
+  showHideEl = (el, toggle) ->
+    if miss.global.compat.hidden
+      if toggle then el.removeAttribute('hidden') and el.style.display = '' else el.setAttribute('hidden', true)
+    else if toggle then el.style.display = '' else el.style.display = 'none'
+
   extend = (objA, objB) ->
     for attr of objB
       objA[attr] = objB[attr]
@@ -45,31 +86,81 @@
   fullHex = (hex) ->
     return "#" + prepHex(hex)
 
+  # Get element coordinates
+  coords = (el) ->
+    rect = el.getBoundingClientRect()
+    top: rect.top
+    right: rect.right
+    bottom: rect.bottom
+    left: rect.left
+    width: rect.width || rect.right - rect.left
+    height: rect.height || rect.bottom - rect.top
+
+  # Gravitate to center
+  gravity = (coords) ->
+    ary_x = []
+    ary_y = []
+    center =
+      x: screen.height / 2
+      y: screen.width / 2
+    el_center =
+      x: coords.height / 2
+      y: coords.width / 2
+    map_x =
+      top:
+        diff: Math.abs(coords.top - center.x)
+        val: coords.top
+      middle:
+        diff: Math.abs((coords.top + el_center.x) - center.x)
+        val: coords.top + el_center.x
+      bottom:
+        diff: Math.abs(coords.bottom - center.x)
+        val: coords.bottom
+    map_y =
+      left:
+        diff: Math.abs(coords.left - center.y)
+        val: coords.left
+      middle:
+        diff: Math.abs((coords.left + el_center.y) - center.y)
+        val: coords.left + el_center.y
+      right:
+        diff: Math.abs(coords.right - center.y)
+        val: coords.right
+
+    ary_x.push(v['diff']) for k, v of map_x
+    ary_y.push(v['diff']) for k, v of map_y
+    optimal_x = ary_x.sort((a,b) -> a - b)[0]
+    optimal_y = ary_y.sort((a,b) -> a - b)[0]
+    x = v['val'] if v['diff'] == optimal_x for k, v of map_x
+    y = v['val'] if v['diff'] == optimal_y for k, v of map_y
+    x: x
+    y: y
+
   # Backdrop
   backdrop = (toggle) ->
     unless document.getElementById('miss_bd')
       opts =  miss.global
       rgb = colorConvert(opts.backdrop_color)
-      bd = document.createElement("div")
+      bd = document.createElement('div')
       bd.id = 'miss_bd'
       bd.style.backgroundColor = "rgba(#{rgb.red}, #{rgb.green}, #{rgb.blue}, #{opts.backdrop_opacity})"
       bd.style.position = 'fixed'
       bd.style.zIndex = opts.z_index
       bd.style.top = 0; bd.style.right = 0; bd.style.bottom = 0; bd.style.left = 0
-      bd.style.display = 'none'
+      showHideEl(bd, false)
       document.body.appendChild(bd)
     bd = document.getElementById('miss_bd')
-    if bd.style.display == 'none' && toggle == 1 then bd.style.display = "" else bd.style.display = 'none'
+    miss.bd = bd
+    showHideEl(bd, toggle)
 
-  # Get element coordinates
-  coords = (el) ->
-    box = el.getBoundingClientRect()
-    top: box.top
-    right: box.right
-    bottom: box.bottom
-    right: box.left
-    height: box.height || box.bottom - box.top
-    width: box.width || box.right - box.left
+  # Format message
+  message = (msg) ->
+    if (/{(.*?)}/.test(msg))
+      msg_el = document.querySelector(msg.match(/{(.*?)}/)[1])
+      showHideEl(msg_el, false)
+      return msg_el.innerHTML
+    else
+      return msg
 
   # Global settings
   miss.settings = (set) ->
@@ -82,14 +173,16 @@
       backdrop_color: '#000'
       backdrop_opacity: 0.3
       z_index: 2100
+      compat:
+        hidden: !!('hidden' of document.createElement('div'))
     , set)
 
   # Plugin states
   miss.on = () ->
-    backdrop(1)
+    backdrop(true)
 
   miss.off = () ->
-    backdrop(0)
+    backdrop(false)
 
   miss.destroy = () =>
     el = document.getElementById("miss_bd")
