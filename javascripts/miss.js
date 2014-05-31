@@ -40,11 +40,10 @@
         this.coords = coords(this.el);
         this.order = this.el.dataset.missOrder || 100 + i;
         this.opts = extend(opts, miss.global);
-        this.title = this.el.dataset.missTitle || null;
-        this.msg = this.el.dataset.missMsg ? message(this.el.dataset.missMsg) : null;
+        this.title = this.opts.title || this.el.dataset.missTitle || null;
+        this.msg = message(this.opts.msg) || message(this.el.dataset.missMsg) || null;
         backdrop(true);
         if (!!(this.title || this.msg)) {
-          this.gravity = gravity(this.coords);
           this.buildBox();
         }
       }
@@ -55,8 +54,6 @@
         box.id = "miss_" + this.order;
         box.className = 'miss-box';
         box.style.position = 'fixed';
-        box.style.top = "" + this.gravity.x + "px";
-        box.style.left = "" + this.gravity.y + "px";
         title_box = document.createElement('div');
         title_box.className = 'miss-titlebar';
         title_box.innerHTML = this.title;
@@ -81,7 +78,12 @@
         }
         box.appendChild(title_box);
         box.appendChild(msg_box);
-        return miss.bd.appendChild(box);
+        box.style.visibility = 'hidden';
+        miss.bd.appendChild(box);
+        this.gravity = gravity(this.coords, box.offsetHeight, box.offsetWidth);
+        box.style.top = "" + this.gravity.x + "px";
+        box.style.left = "" + this.gravity.y + "px";
+        return box.style.visibility = '';
       };
 
       return Miss;
@@ -134,53 +136,115 @@
         height: rect.height || rect.bottom - rect.top
       };
     };
-    gravity = function(coords) {
-      var ary_x, ary_y, center, el_center, k, map_x, map_y, optimal_x, optimal_y, v, x, y;
+    gravity = function(coords, height, width) {
+      var ary_x, ary_y, box_center, center, el_center, k, map_x, map_y, optimal_x, optimal_y, v, x, xk, xv, y, yk, yv, _ref, _ref1, _ref2, _ref3;
       ary_x = [];
       ary_y = [];
       center = {
-        x: screen.height / 2,
-        y: screen.width / 2
+        x: miss.bd.offsetHeight / 2,
+        y: miss.bd.offsetWidth / 2
       };
       el_center = {
         x: coords.height / 2,
         y: coords.width / 2
       };
-      map_x = {
-        top: {
-          diff: Math.abs(coords.top - center.x),
-          val: coords.top
-        },
-        middle: {
-          diff: Math.abs((coords.top + el_center.x) - center.x),
-          val: coords.top + el_center.x
-        },
-        bottom: {
-          diff: Math.abs(coords.bottom - center.x),
-          val: coords.bottom
-        }
+      box_center = {
+        x: height / 2,
+        y: width / 2
       };
-      map_y = {
-        left: {
-          diff: Math.abs(coords.left - center.y),
-          val: coords.left
-        },
-        middle: {
-          diff: Math.abs((coords.left + el_center.y) - center.y),
-          val: coords.left + el_center.y
-        },
-        right: {
-          diff: Math.abs(coords.right - center.y),
-          val: coords.right
+      map_x = [
+        {
+          diff: {
+            top: Math.abs(coords.top - box_center.x - center.x),
+            middle: Math.abs(coords.top - center.x),
+            bottom: Math.abs(coords.top + box_center.x - center.x)
+          },
+          val: {
+            top: coords.top - height,
+            middle: coords.top - box_center.x,
+            bottom: coords.top
+          },
+          position: 'top'
+        }, {
+          diff: {
+            top: Math.abs(coords.top + el_center.x - box_center.x - center.x),
+            middle: Math.abs(coords.top + el_center.x - center.x),
+            bottom: Math.abs(coords.top + el_center.x + box_center.x - center.x)
+          },
+          val: {
+            top: coords.top + el_center.x - height,
+            middle: coords.top + el_center.x - box_center.x,
+            bottom: coords.top + el_center.x
+          },
+          position: 'middle'
+        }, {
+          diff: {
+            top: Math.abs(coords.bottom - box_center.x - center.x),
+            middle: Math.abs(coords.bottom - center.x),
+            bottom: Math.abs(coords.bottom + box_center.x - center.x)
+          },
+          val: {
+            top: coords.bottom - height,
+            middle: coords.bottom - box_center.x,
+            bottom: coords.bottom
+          },
+          position: 'bottom'
         }
-      };
+      ];
+      map_y = [
+        {
+          diff: {
+            left: Math.abs(coords.left - box_center.y - center.y),
+            middle: Math.abs(coords.left - center.y),
+            right: Math.abs(coords.left + box_center.y - center.y)
+          },
+          val: {
+            left: coords.left - width,
+            middle: coords.left - box_center.y,
+            right: coords.left
+          },
+          position: 'left'
+        }, {
+          diff: {
+            left: Math.abs(coords.left + el_center.y - box_center.y - center.y),
+            middle: Math.abs(coords.left + el_center.y - center.y),
+            right: Math.abs(coords.left + el_center.y + box_center.y - center.y)
+          },
+          val: {
+            left: coords.left + el_center.y - width,
+            middle: coords.left + el_center.y - box_center.y,
+            right: coords.left + el_center.y
+          },
+          position: 'middle'
+        }, {
+          diff: {
+            left: Math.abs(coords.right - box_center.y - center.y),
+            middle: Math.abs(coords.right - center.y),
+            right: Math.abs(coords.right + box_center.y - center.y)
+          },
+          val: {
+            left: coords.right - width,
+            middle: coords.right - box_center.y,
+            right: coords.right
+          },
+          position: 'right'
+        }
+      ];
       for (k in map_x) {
         v = map_x[k];
-        ary_x.push(v['diff']);
+        _ref = v['diff'];
+        for (xk in _ref) {
+          xv = _ref[xk];
+          ary_x.push(xv);
+        }
       }
       for (k in map_y) {
         v = map_y[k];
-        ary_y.push(v['diff']);
+        _ref1 = v['diff'];
+        for (yk in _ref1) {
+          yv = _ref1[yk];
+          ary_y.push(yv);
+        }
       }
       optimal_x = ary_x.sort(function(a, b) {
         return a - b;
@@ -188,31 +252,35 @@
       optimal_y = ary_y.sort(function(a, b) {
         return a - b;
       })[0];
-      if ((function() {
-        var _results;
-        _results = [];
-        for (k in map_x) {
-          v = map_x[k];
-          _results.push(v['diff'] === optimal_x);
+      for (k in map_x) {
+        v = map_x[k];
+        _ref2 = v['diff'];
+        for (xk in _ref2) {
+          xv = _ref2[xk];
+          if (xv === optimal_x) {
+            x = {
+              val: v.val[xk],
+              position: "" + v['position'] + "_" + xk
+            };
+          }
         }
-        return _results;
-      })()) {
-        x = v['val'];
       }
-      if ((function() {
-        var _results;
-        _results = [];
-        for (k in map_y) {
-          v = map_y[k];
-          _results.push(v['diff'] === optimal_y);
+      for (k in map_y) {
+        v = map_y[k];
+        _ref3 = v['diff'];
+        for (yk in _ref3) {
+          yv = _ref3[yk];
+          if (yv === optimal_y) {
+            y = {
+              val: v.val[yk],
+              position: "" + v['position'] + "_" + yk
+            };
+          }
         }
-        return _results;
-      })()) {
-        y = v['val'];
       }
       return {
-        x: x,
-        y: y
+        x: x.val,
+        y: y.val
       };
     };
     backdrop = function(toggle) {

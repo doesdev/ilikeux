@@ -26,7 +26,7 @@
   </div>
   <div id="columns">
     <div id="column-1">
-      <div id="blog-column" class="tut" data-miss-order="1" data-miss-title="test title" data-miss-msg="this is the body of the tutorial target. put stuff here">
+      <div id="blog-column" class="tut3" data-miss-order="1" data-miss-title="test title" data-miss-msg="this is the body of the tutorial target. put stuff here">
         
           <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 413px;"><div id="article-wrapper" style="overflow: hidden; width: auto; height: 413px;">
             <div id="article-cover">
@@ -76,7 +76,7 @@
         </div>
       </div>
     </div>
-    <div id="column-2" class="tut">
+    <div id="column-2" class="tut" data-miss-order="4">
       
         <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 661px;"><div id="column-2-wrap" style="overflow: hidden; width: auto; height: 661px;">
           <div id="song-wrapper">
@@ -165,7 +165,7 @@
         
       
     </div>
-    <div id="column-3" class="tut">
+    <div id="column-3" class="tut" data-miss-title="Profile Section" data-miss-msg="This is where you get to see all about yourself (yay for you) and your peers.">
       <div id="uc_wrapper">
         <img alt="Avatar" height="180" id="uc_avatar" src="images/avatar.png" width="180">
         <div class="text-center">
@@ -195,11 +195,14 @@
           backdrop_color: '#000',
           backdrop_opacity: 0.2
       });
-      miss(".tut", {
-          order: 1
-      });
+      miss(".tut");
       miss(".tut2", {
           order: 2
+      });
+      miss(".tut3", {
+          order: 3,
+          title: 'alternate title',
+          msg: 'This is an alternative message body, defined in options instead of a data attribute.'
       });
   </script>
 

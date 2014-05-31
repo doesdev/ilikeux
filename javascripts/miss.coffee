@@ -23,13 +23,12 @@
       @coords = coords(@el)
       @order = @el.dataset.missOrder || 100 + i
       @opts = extend(opts, miss.global)
-      @title = @el.dataset.missTitle || null
-      @msg = if @el.dataset.missMsg then message(@el.dataset.missMsg) else null
+      @title = @opts.title || @el.dataset.missTitle || null
+      @msg = message(@opts.msg) || message(@el.dataset.missMsg) || null
 
       # Functions called on initialize
       backdrop(true) # ToDo: move this where it belongs
       unless !(@title || @msg)
-        @gravity = gravity(@coords)
         this.buildBox()
 
     buildBox: () =>
@@ -38,8 +37,6 @@
       box.id = "miss_#{@order}"
       box.className = 'miss-box'
       box.style.position = 'fixed'
-      box.style.top = "#{@gravity.x}px"
-      box.style.left = "#{@gravity.y}px"
       title_box = document.createElement('div')
       title_box.className = 'miss-titlebar'
       title_box.innerHTML = @title
@@ -61,7 +58,13 @@
       # add them to DOM
       box.appendChild(title_box)
       box.appendChild(msg_box)
+      box.style.visibility = 'hidden'
       miss.bd.appendChild(box)
+      # calculate and apply position
+      @gravity = gravity(@coords, box.offsetHeight, box.offsetWidth)
+      box.style.top = "#{@gravity.x}px"
+      box.style.left = "#{@gravity.y}px"
+      box.style.visibility = ''
 
   # Helpers
   showHideEl = (el, toggle) ->
@@ -94,44 +97,92 @@
     height: rect.height || rect.bottom - rect.top
 
   # Gravitate to center
-  gravity = (coords) ->
+  gravity = (coords, height, width) ->
     ary_x = []
     ary_y = []
-    center =
-      x: screen.height / 2
-      y: screen.width / 2
+    center = # ToDo: use a better reference to page center
+      x: miss.bd.offsetHeight / 2
+      y: miss.bd.offsetWidth / 2
     el_center =
       x: coords.height / 2
       y: coords.width / 2
-    map_x =
-      top:
-        diff: Math.abs(coords.top - center.x)
-        val: coords.top
-      middle:
-        diff: Math.abs((coords.top + el_center.x) - center.x)
-        val: coords.top + el_center.x
-      bottom:
-        diff: Math.abs(coords.bottom - center.x)
-        val: coords.bottom
-    map_y =
-      left:
-        diff: Math.abs(coords.left - center.y)
-        val: coords.left
-      middle:
-        diff: Math.abs((coords.left + el_center.y) - center.y)
-        val: coords.left + el_center.y
-      right:
-        diff: Math.abs(coords.right - center.y)
-        val: coords.right
+    box_center =
+      x: height / 2
+      y: width / 2
+    map_x = [
+      diff:
+        top: Math.abs(coords.top - box_center.x - center.x)
+        middle: Math.abs(coords.top - center.x)
+        bottom: Math.abs(coords.top + box_center.x - center.x)
+      val:
+        top: coords.top - height
+        middle: coords.top - box_center.x
+        bottom: coords.top
+      position: 'top'
+    ,
+      diff:
+        top: Math.abs(coords.top + el_center.x - box_center.x - center.x)
+        middle: Math.abs(coords.top + el_center.x - center.x)
+        bottom: Math.abs(coords.top + el_center.x + box_center.x - center.x)
+      val: 
+        top: coords.top + el_center.x - height
+        middle: coords.top + el_center.x - box_center.x
+        bottom: coords.top + el_center.x
+      position: 'middle'
+    ,
+      diff:
+        top: Math.abs(coords.bottom - box_center.x - center.x)
+        middle: Math.abs(coords.bottom - center.x)
+        bottom: Math.abs(coords.bottom + box_center.x - center.x)
+      val:
+        top: coords.bottom - height
+        middle: coords.bottom - box_center.x
+        bottom: coords.bottom
+      position: 'bottom']
 
-    ary_x.push(v['diff']) for k, v of map_x
-    ary_y.push(v['diff']) for k, v of map_y
+    map_y = [
+      diff:
+        left: Math.abs(coords.left - box_center.y - center.y)
+        middle: Math.abs(coords.left - center.y)
+        right: Math.abs(coords.left + box_center.y - center.y)
+      val: 
+        left: coords.left - width
+        middle: coords.left - box_center.y
+        right: coords.left
+      position: 'left'
+    ,
+      diff:
+        left: Math.abs(coords.left + el_center.y - box_center.y - center.y)
+        middle: Math.abs(coords.left + el_center.y - center.y)
+        right: Math.abs(coords.left + el_center.y + box_center.y - center.y)
+      val: 
+        left: coords.left + el_center.y - width
+        middle: coords.left + el_center.y - box_center.y
+        right: coords.left + el_center.y
+      position: 'middle'
+    ,
+      diff:
+        left: Math.abs(coords.right - box_center.y - center.y)
+        middle: Math.abs(coords.right - center.y)
+        right: Math.abs(coords.right + box_center.y - center.y)
+      val: 
+        left: coords.right - width
+        middle: coords.right - box_center.y
+        right: coords.right
+      position: 'right']
+
+    ary_x.push(xv) for xk, xv of v['diff'] for k, v of map_x
+    ary_y.push(yv) for yk, yv of v['diff']for k, v of map_y
     optimal_x = ary_x.sort((a,b) -> a - b)[0]
     optimal_y = ary_y.sort((a,b) -> a - b)[0]
-    x = v['val'] if v['diff'] == optimal_x for k, v of map_x
-    y = v['val'] if v['diff'] == optimal_y for k, v of map_y
-    x: x
-    y: y
+    for k, v of map_x
+      for xk, xv of v['diff']
+        if xv == optimal_x then x = val: v.val[xk], position: "#{v['position']}_#{xk}"
+    for k, v of map_y
+      for yk, yv of v['diff']
+        if yv == optimal_y then y = val: v.val[yk], position: "#{v['position']}_#{yk}"
+    x: x.val
+    y: y.val
 
   # Backdrop
   backdrop = (toggle) ->
