@@ -3,16 +3,16 @@
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   (function(document) {
-    var Miss, backdrop, colorConvert, coords, extend, gravity, message, miss, prepHex, showHideEl;
+    var Miss, backdrop, colorConvert, coords, extend, gravity, message, miss, prepHex, showHideEl, sortMissies, testEl;
     miss = function(selector, options) {
-      var defaults, el, els, i, sel, _i, _len, _results;
+      var defaults, el, els, i, msg, opts, sel, title, _i, _len;
       if (selector == null) {
         selector = null;
       }
       if (options == null) {
         options = null;
       }
-      miss.missies = miss.missies || {};
+      miss.missies = miss.missies || [];
       if (!miss.global) {
         miss.settings();
       }
@@ -25,27 +25,30 @@
       if (selector) {
         els = document.querySelectorAll.call(document, selector);
         sel = selector.replace(/\./g, '_class_').replace(/\#/g, '_id_').replace(/[^a-zA-Z0-9]/g, '_');
-        _results = [];
+        miss.off();
         for (i = _i = 0, _len = els.length; _i < _len; i = ++_i) {
           el = els[i];
-          _results.push(miss.missies[sel + '_' + i] = new Miss(el, i, extend(defaults, options)));
+          opts = extend(extend(defaults, options), miss.global);
+          title = opts.title || el.dataset.missTitle || null;
+          msg = message(opts.msg) || message(el.dataset.missMsg) || null;
+          if (!!(title || msg)) {
+            miss.missies.push(new Miss(el, i, opts, title, msg));
+          }
         }
-        return _results;
+        sortMissies();
+        return miss.on();
       }
     };
     Miss = (function() {
-      function Miss(el, i, opts) {
+      function Miss(el, i, opts, title, msg) {
+        this.boxSizing = __bind(this.boxSizing, this);
         this.buildBox = __bind(this.buildBox, this);
         this.el = el;
-        this.coords = coords(this.el);
-        this.order = this.el.dataset.missOrder || 100 + i;
-        this.opts = extend(opts, miss.global);
-        this.title = this.opts.title || this.el.dataset.missTitle || null;
-        this.msg = message(this.opts.msg) || message(this.el.dataset.missMsg) || null;
-        backdrop(true);
-        if (!!(this.title || this.msg)) {
-          this.buildBox();
-        }
+        this.order = parseInt(this.el.dataset.missOrder) || 100 + i;
+        this.opts = opts;
+        this.title = title;
+        this.msg = msg;
+        this.buildBox();
       }
 
       Miss.prototype.buildBox = function() {
@@ -63,8 +66,6 @@
         if (!miss.global.theme) {
           box.style.backgroundColor = this.opts.background_color;
           box.style.borderRadius = "3px";
-          box.style.maxWidth = "20%";
-          box.style.maxHeight = "40%";
           title_box.style.backgroundColor = this.opts.titlebar_color;
           title_box.style.borderTopLeftRadius = "3px";
           title_box.style.borderTopRightRadius = "3px";
@@ -78,12 +79,38 @@
         }
         box.appendChild(title_box);
         box.appendChild(msg_box);
-        box.style.visibility = 'hidden';
+        showHideEl(box, false);
         miss.bd.appendChild(box);
-        this.gravity = gravity(this.coords, box.offsetHeight, box.offsetWidth);
-        box.style.top = "" + this.gravity.x + "px";
-        box.style.left = "" + this.gravity.y + "px";
-        return box.style.visibility = '';
+        this.box = box;
+        return this.boxSizing();
+      };
+
+      Miss.prototype.boxSizing = function() {
+        var bd_visible, box_visible, coord, gravitate;
+        bd_visible = miss.bd.visible || null;
+        box_visible = this.box.visible || null;
+        if (!bd_visible) {
+          miss.bd.style.visibility = 'hidden';
+          miss.on();
+        }
+        if (!box_visible) {
+          this.box.style.visibility = 'hidden';
+          showHideEl(this.box, true);
+        }
+        coord = coords(this.el);
+        this.box.style.maxWidth = "30%";
+        this.box.style.maxHeight = "60%";
+        gravitate = gravity(coord, this.box.offsetHeight, this.box.offsetWidth);
+        this.box.style.top = "" + gravitate.x + "px";
+        this.box.style.left = "" + gravitate.y + "px";
+        if (!bd_visible) {
+          miss.bd.style.visibility = '';
+          miss.off();
+        }
+        if (!box_visible) {
+          this.box.style.visibility = '';
+          return showHideEl(this.box, false);
+        }
       };
 
       return Miss;
@@ -92,15 +119,16 @@
     showHideEl = function(el, toggle) {
       if (miss.global.compat.hidden) {
         if (toggle) {
-          return el.removeAttribute('hidden') && (el.style.display = '');
+          el.removeAttribute('hidden') && (el.style.display = '');
         } else {
-          return el.setAttribute('hidden', true);
+          el.setAttribute('hidden', true);
         }
       } else if (toggle) {
-        return el.style.display = '';
+        el.style.display = '';
       } else {
-        return el.style.display = 'none';
+        el.style.display = 'none';
       }
+      return el.visible = toggle;
     };
     extend = function(objA, objB) {
       var attr;
@@ -124,6 +152,11 @@
         return hex;
       }
     };
+    sortMissies = function() {
+      return miss.missies.sort(function(a, b) {
+        return a['order'] - b['order'];
+      });
+    };
     coords = function(el) {
       var rect;
       rect = el.getBoundingClientRect();
@@ -136,13 +169,26 @@
         height: rect.height || rect.bottom - rect.top
       };
     };
+    testEl = function() {
+      var test;
+      if (!(test = document.getElementById('miss-size-test'))) {
+        test = document.createElement("div");
+        test.id = 'miss-size-test';
+        test.style.cssText = "position: fixed;top: 0;left: 0;bottom: 0;right: 0; visibility: hidden;";
+        document.body.appendChild(test);
+      }
+      return {
+        height: test.offsetHeight,
+        width: test.offsetWidth
+      };
+    };
     gravity = function(coords, height, width) {
       var ary_x, ary_y, box_center, center, el_center, k, map_x, map_y, optimal_x, optimal_y, v, x, xk, xv, y, yk, yv, _ref, _ref1, _ref2, _ref3;
       ary_x = [];
       ary_y = [];
       center = {
-        x: miss.bd.offsetHeight / 2,
-        y: miss.bd.offsetWidth / 2
+        x: testEl().height / 2,
+        y: testEl().width / 2
       };
       el_center = {
         x: coords.height / 2,
@@ -285,7 +331,7 @@
     };
     backdrop = function(toggle) {
       var bd, opts, rgb;
-      if (!document.getElementById('miss_bd')) {
+      if (!(bd = document.getElementById('miss_bd'))) {
         opts = miss.global;
         rgb = colorConvert(opts.backdrop_color);
         bd = document.createElement('div');
@@ -300,7 +346,6 @@
         showHideEl(bd, false);
         document.body.appendChild(bd);
       }
-      bd = document.getElementById('miss_bd');
       miss.bd = bd;
       return showHideEl(bd, toggle);
     };
@@ -329,6 +374,16 @@
         }
       }, set);
     };
+    window.onresize = function() {
+      var i, m, _ref, _results;
+      _ref = miss.missies;
+      _results = [];
+      for (i in _ref) {
+        m = _ref[i];
+        _results.push(m.boxSizing());
+      }
+      return _results;
+    };
     miss.on = function() {
       return backdrop(true);
     };
@@ -337,9 +392,11 @@
     };
     miss.destroy = (function(_this) {
       return function() {
-        var el;
-        el = document.getElementById("miss_bd");
-        el.parentNode.removeChild(el);
+        var bd, test;
+        test = document.getElementById('miss-size-test');
+        test.parentNode.removeChild(test);
+        bd = document.getElementById('miss_bd');
+        bd.parentNode.removeChild(bd);
         return delete _this.miss;
       };
     })(this);

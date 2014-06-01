@@ -2,7 +2,7 @@
 
   # Initializer
   miss = (selector = null, options = null) ->
-    miss.missies = miss.missies || {}
+    miss.missies = miss.missies || []
     miss.settings() unless miss.global
     defaults =
       order: 'series'
@@ -13,23 +13,26 @@
     if selector
       els = document.querySelectorAll.call document, selector
       sel = selector.replace(/\./g,'_class_').replace(/\#/g,'_id_').replace(/[^a-zA-Z0-9]/g,'_')
+      miss.off()
       for el, i in els
-        miss.missies[sel + '_' + i] = new Miss(el, i, extend(defaults, options))
+        opts = extend( extend(defaults, options), miss.global)
+        title = opts.title || el.dataset.missTitle || null
+        msg = message(opts.msg) || message(el.dataset.missMsg) || null
+        miss.missies.push(new Miss(el, i, opts, title, msg)) unless !(title || msg)
+      sortMissies()
+      miss.on()
 
   # Constructor
   class Miss
-    constructor: (el, i, opts) ->
+    constructor: (el, i, opts, title, msg) ->
       @el = el
-      @coords = coords(@el)
-      @order = @el.dataset.missOrder || 100 + i
-      @opts = extend(opts, miss.global)
-      @title = @opts.title || @el.dataset.missTitle || null
-      @msg = message(@opts.msg) || message(@el.dataset.missMsg) || null
+      @order = parseInt(@el.dataset.missOrder) || 100 + i
+      @opts = opts
+      @title = title
+      @msg = msg
 
       # Functions called on initialize
-      backdrop(true) # ToDo: move this where it belongs
-      unless !(@title || @msg)
-        this.buildBox()
+      this.buildBox()
 
     buildBox: () =>
       # create elements with data
@@ -47,8 +50,6 @@
       unless miss.global.theme
         box.style.backgroundColor = @opts.background_color
         box.style.borderRadius = "3px"
-        box.style.maxWidth = "20%"
-        box.style.maxHeight = "40%"
         title_box.style.backgroundColor = @opts.titlebar_color
         title_box.style.borderTopLeftRadius = "3px"
         title_box.style.borderTopRightRadius = "3px"
@@ -58,19 +59,43 @@
       # add them to DOM
       box.appendChild(title_box)
       box.appendChild(msg_box)
-      box.style.visibility = 'hidden'
+      showHideEl(box, false)
       miss.bd.appendChild(box)
-      # calculate and apply position
-      @gravity = gravity(@coords, box.offsetHeight, box.offsetWidth)
-      box.style.top = "#{@gravity.x}px"
-      box.style.left = "#{@gravity.y}px"
-      box.style.visibility = ''
+      @box = box
+      this.boxSizing()
+
+    boxSizing: () =>
+      # ensure box is on dom for obtaining dimensions
+      bd_visible = miss.bd.visible || null
+      box_visible = @box.visible || null
+      unless bd_visible
+        miss.bd.style.visibility = 'hidden'
+        miss.on()
+      unless box_visible
+        @box.style.visibility = 'hidden'
+        showHideEl(@box, true)
+      coord = coords(@el)
+      # set box dimensions
+      @box.style.maxWidth = "30%"
+      @box.style.maxHeight = "60%"
+      # set box gravity
+      gravitate = gravity(coord, @box.offsetHeight, @box.offsetWidth)
+      @box.style.top = "#{gravitate.x}px"
+      @box.style.left = "#{gravitate.y}px"
+      # hide again
+      unless bd_visible
+        miss.bd.style.visibility = ''
+        miss.off()
+      unless box_visible
+        @box.style.visibility = ''
+        showHideEl(@box, false)
 
   # Helpers
   showHideEl = (el, toggle) ->
     if miss.global.compat.hidden
       if toggle then el.removeAttribute('hidden') and el.style.display = '' else el.setAttribute('hidden', true)
     else if toggle then el.style.display = '' else el.style.display = 'none'
+    el.visible = toggle
 
   extend = (objA, objB) ->
     for attr of objB
@@ -86,6 +111,10 @@
     hex = (if (hex.charAt(0) is "#") then hex.split("#")[1] else hex)
     return if hex.length is 3 then hex + hex else hex
 
+  # Sort missies by order
+  sortMissies = () ->
+    miss.missies.sort((a, b) -> a['order'] - b['order'])
+
   # Get element coordinates
   coords = (el) ->
     rect = el.getBoundingClientRect()
@@ -96,13 +125,23 @@
     width: rect.width || rect.right - rect.left
     height: rect.height || rect.bottom - rect.top
 
+  #Build test element for getting screen dimensions
+  testEl = () ->
+    unless test = document.getElementById('miss-size-test')
+      test = document.createElement("div")
+      test.id = 'miss-size-test'
+      test.style.cssText = "position: fixed;top: 0;left: 0;bottom: 0;right: 0; visibility: hidden;"
+      document.body.appendChild(test)
+    height: test.offsetHeight
+    width: test.offsetWidth
+
   # Gravitate to center
   gravity = (coords, height, width) ->
     ary_x = []
     ary_y = []
-    center = # ToDo: use a better reference to page center
-      x: miss.bd.offsetHeight / 2
-      y: miss.bd.offsetWidth / 2
+    center =
+      x: testEl().height / 2
+      y: testEl().width / 2
     el_center =
       x: coords.height / 2
       y: coords.width / 2
@@ -124,7 +163,7 @@
         top: Math.abs(coords.top + el_center.x - box_center.x - center.x)
         middle: Math.abs(coords.top + el_center.x - center.x)
         bottom: Math.abs(coords.top + el_center.x + box_center.x - center.x)
-      val: 
+      val:
         top: coords.top + el_center.x - height
         middle: coords.top + el_center.x - box_center.x
         bottom: coords.top + el_center.x
@@ -139,7 +178,6 @@
         middle: coords.bottom - box_center.x
         bottom: coords.bottom
       position: 'bottom']
-
     map_y = [
       diff:
         left: Math.abs(coords.left - box_center.y - center.y)
@@ -172,7 +210,7 @@
       position: 'right']
 
     ary_x.push(xv) for xk, xv of v['diff'] for k, v of map_x
-    ary_y.push(yv) for yk, yv of v['diff']for k, v of map_y
+    ary_y.push(yv) for yk, yv of v['diff'] for k, v of map_y
     optimal_x = ary_x.sort((a,b) -> a - b)[0]
     optimal_y = ary_y.sort((a,b) -> a - b)[0]
     for k, v of map_x
@@ -186,7 +224,7 @@
 
   # Backdrop
   backdrop = (toggle) ->
-    unless document.getElementById('miss_bd')
+    unless bd = document.getElementById('miss_bd')
       opts =  miss.global
       rgb = colorConvert(opts.backdrop_color)
       bd = document.createElement('div')
@@ -197,7 +235,6 @@
       bd.style.top = 0; bd.style.right = 0; bd.style.bottom = 0; bd.style.left = 0
       showHideEl(bd, false)
       document.body.appendChild(bd)
-    bd = document.getElementById('miss_bd')
     miss.bd = bd
     showHideEl(bd, toggle)
 
@@ -225,6 +262,10 @@
         hidden: !!('hidden' of document.createElement('div'))
     , set)
 
+  # Resize events
+  window.onresize = () ->
+    m.boxSizing() for i, m of miss.missies
+
   # Plugin states
   miss.on = () ->
     backdrop(true)
@@ -233,8 +274,10 @@
     backdrop(false)
 
   miss.destroy = () =>
-    el = document.getElementById("miss_bd")
-    el.parentNode.removeChild(el)
+    test = document.getElementById('miss-size-test')
+    test.parentNode.removeChild(test)
+    bd = document.getElementById('miss_bd')
+    bd.parentNode.removeChild(bd)
     delete this.miss
 
   this.miss = miss
