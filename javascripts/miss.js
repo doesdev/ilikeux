@@ -5,7 +5,7 @@
   (function(document) {
     var Miss, backdrop, colorConvert, coords, extend, gravity, message, miss, prepHex, showHideEl, sortMissies, testEl;
     miss = function(selector, options) {
-      var defaults, el, els, i, msg, opts, sel, title, _i, _len;
+      var defaults, el, els, i, m, msg, opts, sel, title, _i, _len, _ref, _results;
       if (selector == null) {
         selector = null;
       }
@@ -32,15 +32,26 @@
           title = opts.title || el.dataset.missTitle || null;
           msg = message(opts.msg) || message(el.dataset.missMsg) || null;
           if (!!(title || msg)) {
-            miss.missies.push(new Miss(el, i, opts, title, msg));
+            miss.missies.push(new Miss(el, i, opts, title, msg, "miss_" + sel + "_" + i));
           }
         }
         sortMissies();
-        return miss.on();
+        miss.on();
+        _ref = miss.missies;
+        _results = [];
+        for (i in _ref) {
+          m = _ref[i];
+          _results.push(m.on());
+        }
+        return _results;
       }
     };
     Miss = (function() {
-      function Miss(el, i, opts, title, msg) {
+      function Miss(el, i, opts, title, msg, sel) {
+        this.off = __bind(this.off, this);
+        this.on = __bind(this.on, this);
+        this.resize = __bind(this.resize, this);
+        this.highlight = __bind(this.highlight, this);
         this.boxSizing = __bind(this.boxSizing, this);
         this.buildBox = __bind(this.buildBox, this);
         this.el = el;
@@ -48,11 +59,12 @@
         this.opts = opts;
         this.title = title;
         this.msg = msg;
+        this.uid = sel;
         this.buildBox();
       }
 
       Miss.prototype.buildBox = function() {
-        var box, li, msg_box, title_box, _i, _len, _ref;
+        var box, msg_box, title_box;
         box = document.createElement('div');
         box.id = "miss_" + this.order;
         box.className = 'miss-box';
@@ -71,11 +83,6 @@
           title_box.style.borderTopRightRadius = "3px";
           title_box.style.padding = '8px';
           msg_box.style.padding = '8px';
-          _ref = msg_box.querySelectorAll('li');
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            li = _ref[_i];
-            li.style.listStyle = 'disc inside';
-          }
         }
         box.appendChild(title_box);
         box.appendChild(msg_box);
@@ -87,6 +94,7 @@
 
       Miss.prototype.boxSizing = function() {
         var bd_visible, box_visible, coord, gravitate;
+        coord = coords(this.el);
         bd_visible = miss.bd.visible || null;
         box_visible = this.box.visible || null;
         if (!bd_visible) {
@@ -97,7 +105,6 @@
           this.box.style.visibility = 'hidden';
           showHideEl(this.box, true);
         }
-        coord = coords(this.el);
         this.box.style.maxWidth = "30%";
         this.box.style.maxHeight = "60%";
         gravitate = gravity(coord, this.box.offsetHeight, this.box.offsetWidth);
@@ -111,6 +118,37 @@
           this.box.style.visibility = '';
           return showHideEl(this.box, false);
         }
+      };
+
+      Miss.prototype.highlight = function() {
+        var coord, hl;
+        coord = coords(this.el);
+        hl = document.getElementById(this.uid) || document.createElement('div');
+        hl.id = this.uid;
+        hl.style.position = "fixed";
+        hl.style.top = "" + (coord.top - this.opts.highlight_width) + "px";
+        hl.style.left = "" + (coord.left - this.opts.highlight_width) + "px";
+        hl.style.width = "" + (coord.width + this.opts.highlight_width) + "px";
+        hl.style.height = "" + (coord.height + this.opts.highlight_width) + "px";
+        hl.style.border = "" + this.opts.highlight_width + "px solid " + this.opts.highlight_color;
+        return miss.bd.appendChild(hl);
+      };
+
+      Miss.prototype.resize = function() {
+        this.boxSizing();
+        return this.highlight();
+      };
+
+      Miss.prototype.on = function() {
+        this.highlight();
+        return showHideEl(this.box, true);
+      };
+
+      Miss.prototype.off = function() {
+        var hl;
+        hl = document.getElementById(this.uid);
+        hl.parentNode.removeChild(hl);
+        return showHideEl(this.box, false);
       };
 
       return Miss;
@@ -158,13 +196,14 @@
       });
     };
     coords = function(el) {
-      var rect;
+      var hl_border, rect;
       rect = el.getBoundingClientRect();
+      hl_border = miss.global.highlight ? miss.global.highlight_width : 0;
       return {
-        top: rect.top,
-        right: rect.right,
-        bottom: rect.bottom,
-        left: rect.left,
+        top: rect.top - hl_border,
+        right: rect.right + hl_border,
+        bottom: rect.bottom + hl_border,
+        left: rect.left - hl_border,
         width: rect.width || rect.right - rect.left,
         height: rect.height || rect.bottom - rect.top
       };
@@ -367,8 +406,13 @@
         key_off: null,
         key_hover: null,
         backdrop_color: '#000',
-        backdrop_opacity: 0.3,
+        backdrop_opacity: 0.4,
         z_index: 2100,
+        welcome_title: null,
+        welcome_msg: null,
+        highlight: true,
+        highlight_width: 3,
+        highlight_color: '#fff',
         compat: {
           hidden: !!('hidden' in document.createElement('div'))
         }
@@ -380,7 +424,7 @@
       _results = [];
       for (i in _ref) {
         m = _ref[i];
-        _results.push(m.boxSizing());
+        _results.push(m.resize());
       }
       return _results;
     };

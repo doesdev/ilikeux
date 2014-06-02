@@ -18,18 +18,20 @@
         opts = extend( extend(defaults, options), miss.global)
         title = opts.title || el.dataset.missTitle || null
         msg = message(opts.msg) || message(el.dataset.missMsg) || null
-        miss.missies.push(new Miss(el, i, opts, title, msg)) unless !(title || msg)
+        miss.missies.push(new Miss(el, i, opts, title, msg, "miss_#{sel}_#{i}")) unless !(title || msg)
       sortMissies()
       miss.on()
+      m.on() for i, m of miss.missies
 
   # Constructor
   class Miss
-    constructor: (el, i, opts, title, msg) ->
+    constructor: (el, i, opts, title, msg, sel) ->
       @el = el
       @order = parseInt(@el.dataset.missOrder) || 100 + i
       @opts = opts
       @title = title
       @msg = msg
+      @uid = sel
 
       # Functions called on initialize
       this.buildBox()
@@ -55,7 +57,6 @@
         title_box.style.borderTopRightRadius = "3px"
         title_box.style.padding = '8px'
         msg_box.style.padding = '8px'
-        li.style.listStyle = 'disc inside' for li in msg_box.querySelectorAll('li')
       # add them to DOM
       box.appendChild(title_box)
       box.appendChild(msg_box)
@@ -65,6 +66,7 @@
       this.boxSizing()
 
     boxSizing: () =>
+      coord = coords(@el)
       # ensure box is on dom for obtaining dimensions
       bd_visible = miss.bd.visible || null
       box_visible = @box.visible || null
@@ -74,7 +76,6 @@
       unless box_visible
         @box.style.visibility = 'hidden'
         showHideEl(@box, true)
-      coord = coords(@el)
       # set box dimensions
       @box.style.maxWidth = "30%"
       @box.style.maxHeight = "60%"
@@ -89,6 +90,31 @@
       unless box_visible
         @box.style.visibility = ''
         showHideEl(@box, false)
+
+    highlight: () =>
+      coord = coords(@el)
+      hl = document.getElementById(@uid) || document.createElement('div')
+      hl.id = @uid
+      hl.style.position = "fixed"
+      hl.style.top = "#{coord.top - @opts.highlight_width}px"
+      hl.style.left = "#{coord.left - @opts.highlight_width}px"
+      hl.style.width = "#{coord.width + @opts.highlight_width}px"
+      hl.style.height = "#{coord.height + @opts.highlight_width}px"
+      hl.style.border = "#{@opts.highlight_width}px solid #{@opts.highlight_color}"
+      miss.bd.appendChild(hl)
+
+    resize: () =>
+      this.boxSizing()
+      this.highlight()
+
+    on: () =>
+      this.highlight()
+      showHideEl(@box, true)
+
+    off: () =>
+      hl = document.getElementById(@uid)
+      hl.parentNode.removeChild(hl)
+      showHideEl(@box, false)
 
   # Helpers
   showHideEl = (el, toggle) ->
@@ -118,10 +144,11 @@
   # Get element coordinates
   coords = (el) ->
     rect = el.getBoundingClientRect()
-    top: rect.top
-    right: rect.right
-    bottom: rect.bottom
-    left: rect.left
+    hl_border = if miss.global.highlight then miss.global.highlight_width else 0
+    top: rect.top - hl_border
+    right: rect.right + hl_border
+    bottom: rect.bottom + hl_border
+    left: rect.left - hl_border
     width: rect.width || rect.right - rect.left
     height: rect.height || rect.bottom - rect.top
 
@@ -256,15 +283,20 @@
       key_off: null
       key_hover: null
       backdrop_color: '#000'
-      backdrop_opacity: 0.3
+      backdrop_opacity: 0.4
       z_index: 2100
+      welcome_title: null
+      welcome_msg: null
+      highlight: true
+      highlight_width: 3
+      highlight_color: '#fff'
       compat:
         hidden: !!('hidden' of document.createElement('div'))
     , set)
 
   # Resize events
   window.onresize = () ->
-    m.boxSizing() for i, m of miss.missies
+    m.resize() for i, m of miss.missies
 
   # Plugin states
   miss.on = () ->
