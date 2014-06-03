@@ -7,6 +7,7 @@
     <meta name="description" content="Stuff about me, Andrew Carpenter, and my love for crafting great online experiences.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="stylesheets/ilikeux.css">
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
     <script src="javascripts/jquery-2.0.3.min.js"></script>
 </head>
 <body>
@@ -15,15 +16,15 @@
     <header>
     </header>
 
-    <a id="playall">play all</a>
+    <a class="tut" id="playall" data-miss-title="Play All" data-miss-msg="Begin playback of all audio elements.">play all</a>
     <br/>
-    <a id="pauseall">pause all</a>
+    <a id="pauseall" class="tut" data-miss-title="Pause" data-miss-msg="Pause all audio playback.">pause all</a>
     <br/>
-    <a id="stopall">stop / unload all</a>
+    <a id="stopall" class="tut" data-miss-title="Stop" data-miss-msg="Stop playback on all audio elements.">stop / unload all</a>
     <br/>
-    <a id="resetall">reset all</a>
+    <a id="resetall" class="tut" data-miss-title="Reset All" data-miss-msg="Set playback to 0 and stop.">reset all</a>
     <br/>
-    <a id="load-defaults">re-load</a>
+    <a id="load-defaults" class="tut" data-miss-title="Load Defaults" data-miss-msg="Load up the default audio elements.">re-load</a>
 
     <footer>
     </footer>
@@ -33,5 +34,24 @@
 
 
 <script src="javascripts/player.js"></script>
+<script src="javascripts/miss.js"></script>
+<script>
+    miss({
+        settings: {
+            backdrop_color: '#000',
+            backdrop_opacity: 0.4,
+            theme: 'custom'
+        },
+        elements: {
+            ".tut": null,
+            ".tut2": {order: 2},
+            ".tut3": {
+                order: 3,
+                title: 'alternate title',
+                msg: 'This is an alternative message body, defined in options instead of a data attribute.'
+            }
+        }
+    });
+</script>
 </body>
 </html>

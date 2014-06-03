@@ -40,17 +40,18 @@
       # create elements with data
       box = document.createElement('div')
       box.id = "miss_#{@order}"
-      box.className = 'miss-box'
+      box.className = 'miss-box popover'
       box.style.position = 'fixed'
-      title_box = document.createElement('div')
-      title_box.className = 'miss-titlebar'
+      title_box = document.createElement('H3')
+      title_box.className = 'miss-titlebar popover-title'
       title_box.innerHTML = @title
       msg_box = document.createElement('div')
-      msg_box.className = 'miss-msg'
+      msg_box.className = 'miss-msg popover-content'
       msg_box.innerHTML = @msg
       nav_box = document.createElement('div')
-      nav_box.className = 'miss-nav'
-      nav_buttons = '<button onclick="miss.previous();">previous</button><button onclick="miss.next();">next</button>'
+      nav_box.className = 'miss-nav btn-group'
+      nav_buttons = '<button class="btn btn-default" onclick="miss.previous();">prev</button>
+                     <button class="btn btn-primary" onclick="miss.next();">next</button>'
       nav_box.innerHTML = nav_buttons
       # apply (minimal) styling
       unless miss.global.theme
@@ -63,8 +64,8 @@
         msg_box.style.padding = '8px'
       # add them to DOM
       box.appendChild(title_box)
+      msg_box.appendChild(nav_box)
       box.appendChild(msg_box)
-      box.appendChild(nav_box)
       showHideEl(box, false)
       miss.bd.appendChild(box)
       @box = box
@@ -123,9 +124,8 @@
 
   # Helpers
   showHideEl = (el, toggle) ->
-    if miss.global.compat.hidden
-      if toggle then el.removeAttribute('hidden') and el.style.display = '' else el.setAttribute('hidden', true)
-    else if toggle then el.style.display = '' else el.style.display = 'none'
+    if toggle then el.style.cssText = el.style.cssText += 'display:block !important;'
+    else el.style.cssText = el.style.cssText += 'display:none !important;'
     el.miss_visible = toggle
 
   extend = (objA, objB) ->
@@ -295,8 +295,6 @@
       highlight: true
       highlight_width: 3
       highlight_color: '#fff'
-      compat:
-        hidden: !!('hidden' of document.createElement('div'))
     , set)
 
   # Resize events

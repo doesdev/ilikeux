@@ -59,17 +59,17 @@
         var box, msg_box, nav_box, nav_buttons, title_box;
         box = document.createElement('div');
         box.id = "miss_" + this.order;
-        box.className = 'miss-box';
+        box.className = 'miss-box popover';
         box.style.position = 'fixed';
-        title_box = document.createElement('div');
-        title_box.className = 'miss-titlebar';
+        title_box = document.createElement('H3');
+        title_box.className = 'miss-titlebar popover-title';
         title_box.innerHTML = this.title;
         msg_box = document.createElement('div');
-        msg_box.className = 'miss-msg';
+        msg_box.className = 'miss-msg popover-content';
         msg_box.innerHTML = this.msg;
         nav_box = document.createElement('div');
-        nav_box.className = 'miss-nav';
-        nav_buttons = '<button onclick="miss.previous();">previous</button><button onclick="miss.next();">next</button>';
+        nav_box.className = 'miss-nav btn-group';
+        nav_buttons = '<button class="btn btn-default" onclick="miss.previous();">prev</button> <button class="btn btn-primary" onclick="miss.next();">next</button>';
         nav_box.innerHTML = nav_buttons;
         if (!miss.global.theme) {
           box.style.backgroundColor = this.opts.background_color;
@@ -81,8 +81,8 @@
           msg_box.style.padding = '8px';
         }
         box.appendChild(title_box);
+        msg_box.appendChild(nav_box);
         box.appendChild(msg_box);
-        box.appendChild(nav_box);
         showHideEl(box, false);
         miss.bd.appendChild(box);
         this.box = box;
@@ -154,16 +154,10 @@
 
     })();
     showHideEl = function(el, toggle) {
-      if (miss.global.compat.hidden) {
-        if (toggle) {
-          el.removeAttribute('hidden') && (el.style.display = '');
-        } else {
-          el.setAttribute('hidden', true);
-        }
-      } else if (toggle) {
-        el.style.display = '';
+      if (toggle) {
+        el.style.cssText = el.style.cssText += 'display:block !important;';
       } else {
-        el.style.display = 'none';
+        el.style.cssText = el.style.cssText += 'display:none !important;';
       }
       return el.miss_visible = toggle;
     };
@@ -411,10 +405,7 @@
         welcome_msg: null,
         highlight: true,
         highlight_width: 3,
-        highlight_color: '#fff',
-        compat: {
-          hidden: !!('hidden' in document.createElement('div'))
-        }
+        highlight_color: '#fff'
       }, set);
     };
     resize = function() {
