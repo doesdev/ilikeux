@@ -1,37 +1,37 @@
 ((document) ->
 
   # Initializer
-  miss = (selector = null, options = null) ->
+  miss = (misset) ->
     miss.missies = miss.missies || []
-    miss.settings() unless miss.global
+    miss.settings(misset.settings || null) unless miss.global
     defaults =
       order: 'series'
       background_color: '#f5f5f5'
       titlebar_color: '#939393'
       font_color: '#000'
 
-    if selector
-      els = document.querySelectorAll.call document, selector
-      sel = selector.replace(/\./g,'_class_').replace(/\#/g,'_id_').replace(/[^a-zA-Z0-9]/g,'_')
+    if misset.elements
       miss.off()
-      for el, i in els
-        opts = extend( extend(defaults, options), miss.global)
-        title = opts.title || el.dataset.missTitle || null
-        msg = message(opts.msg) || message(el.dataset.missMsg) || null
-        miss.missies.push(new Miss(el, i, opts, title, msg, "miss_#{sel}_#{i}")) unless !(title || msg)
+      i = 0
+      for k, v of misset.elements
+        opts = extend( extend(defaults, v), miss.global)
+        for el in document.querySelectorAll.call(document, k)
+          title = opts.title || el.dataset.missTitle || null
+          msg = message(opts.msg) || message(el.dataset.missMsg) || null
+          miss.missies.push(new Miss(el, i = i + 1, opts, title, msg)) unless !(title || msg)
       sortMissies()
       miss.on()
-      m.on() for i, m of miss.missies
+      miss.missies[0].on()
 
   # Constructor
   class Miss
-    constructor: (el, i, opts, title, msg, sel) ->
+    constructor: (el, i, opts, title, msg) ->
       @el = el
       @order = parseInt(@el.dataset.missOrder) || 100 + i
       @opts = opts
       @title = title
       @msg = msg
-      @uid = sel
+      @index = i
 
       # Functions called on initialize
       this.buildBox()
@@ -48,6 +48,10 @@
       msg_box = document.createElement('div')
       msg_box.className = 'miss-msg'
       msg_box.innerHTML = @msg
+      nav_box = document.createElement('div')
+      nav_box.className = 'miss-nav'
+      nav_buttons = '<button onclick="miss.previous();">previous</button><button onclick="miss.next();">next</button>'
+      nav_box.innerHTML = nav_buttons
       # apply (minimal) styling
       unless miss.global.theme
         box.style.backgroundColor = @opts.background_color
@@ -60,6 +64,7 @@
       # add them to DOM
       box.appendChild(title_box)
       box.appendChild(msg_box)
+      box.appendChild(nav_box)
       showHideEl(box, false)
       miss.bd.appendChild(box)
       @box = box
@@ -68,12 +73,12 @@
     boxSizing: () =>
       coord = coords(@el)
       # ensure box is on dom for obtaining dimensions
-      bd_visible = miss.bd.visible || null
-      box_visible = @box.visible || null
-      unless bd_visible
+      bd_miss_visible = miss.bd.miss_visible || null
+      box_miss_visible = @box.miss_visible || null
+      unless bd_miss_visible
         miss.bd.style.visibility = 'hidden'
         miss.on()
-      unless box_visible
+      unless box_miss_visible
         @box.style.visibility = 'hidden'
         showHideEl(@box, true)
       # set box dimensions
@@ -84,17 +89,17 @@
       @box.style.top = "#{gravitate.x}px"
       @box.style.left = "#{gravitate.y}px"
       # hide again
-      unless bd_visible
+      unless bd_miss_visible
         miss.bd.style.visibility = ''
         miss.off()
-      unless box_visible
+      unless box_miss_visible
         @box.style.visibility = ''
         showHideEl(@box, false)
 
     highlight: () =>
       coord = coords(@el)
-      hl = document.getElementById(@uid) || document.createElement('div')
-      hl.id = @uid
+      hl = document.getElementById("miss_hl_#{@index}") || document.createElement('div')
+      hl.id = "miss_hl_#{@index}"
       hl.style.position = "fixed"
       hl.style.top = "#{coord.top - @opts.highlight_width}px"
       hl.style.left = "#{coord.left - @opts.highlight_width}px"
@@ -112,8 +117,8 @@
       showHideEl(@box, true)
 
     off: () =>
-      hl = document.getElementById(@uid)
-      hl.parentNode.removeChild(hl)
+      hl = document.getElementById("miss_hl_#{@index}")
+      hl.parentNode.removeChild(hl) if hl
       showHideEl(@box, false)
 
   # Helpers
@@ -121,7 +126,7 @@
     if miss.global.compat.hidden
       if toggle then el.removeAttribute('hidden') and el.style.display = '' else el.setAttribute('hidden', true)
     else if toggle then el.style.display = '' else el.style.display = 'none'
-    el.visible = toggle
+    el.miss_visible = toggle
 
   extend = (objA, objB) ->
     for attr of objB
@@ -295,8 +300,36 @@
     , set)
 
   # Resize events
-  window.onresize = () ->
+  resize = () ->
     m.resize() for i, m of miss.missies
+  window.onresize = resize()
+  window.onscroll = resize()
+  window.onorientationchange = resize()
+
+  # Navigate missies
+  miss.next = () ->
+    for m, i in miss.missies
+      if m.box.miss_visible
+        m.off()
+        if miss.missies[i + 1] then return miss.missies[i + 1].on() else return miss.off()
+
+  miss.previous = () ->
+    for m, i in miss.missies
+      if m.box.miss_visible
+        m.off()
+        if miss.missies[i - 1] then return miss.missies[i - 1].on() else return miss.off()
+
+  miss.first = () ->
+    for m in miss.missies
+      if m.box.miss_visible
+        m.off()
+    miss.missies[0].on()
+
+  miss.last = () ->
+    for m in miss.missies
+      if m.box.miss_visible
+        m.off()
+    miss.missies[miss.missies.length - 1].on()
 
   # Plugin states
   miss.on = () ->

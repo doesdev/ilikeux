@@ -167,7 +167,7 @@
     </div>
     <div id="column-3" class="tut" data-miss-title="Profile Section" data-miss-msg="This is where you get to see all about yourself (yay for you) and your peers.">
       <div id="uc_wrapper">
-        <img alt="Avatar" height="180" id="uc_avatar" src="images/avatar.png" width="180">
+        <img alt="Avatar" class="tut" data-miss-title="Tut Numero Dos" data-miss-msg="Yeah, this is it." height="180" id="uc_avatar" src="images/avatar.png" width="180">
         <div class="text-center">
           <div id="uc_username">admin</div>
           <br>
@@ -191,18 +191,20 @@
   <script src="javascripts/player.js"></script>
   <script src="javascripts/miss.js"></script>
   <script>
-      miss.settings({
-          backdrop_color: '#000',
-          backdrop_opacity: 0.2
-      });
-      miss(".tut");
-      miss(".tut2", {
-          order: 2
-      });
-      miss(".tut3", {
-          order: 3,
-          title: 'alternate title',
-          msg: 'This is an alternative message body, defined in options instead of a data attribute.'
+      miss({
+          settings: {
+              backdrop_color: '#000',
+              backdrop_opacity: 0.4
+          },
+          elements: {
+              ".tut": null,
+              ".tut2": {order: 2},
+              ".tut3": {
+                  order: 3,
+                  title: 'alternate title',
+                  msg: 'This is an alternative message body, defined in options instead of a data attribute.'
+              }
+          }
       });
   </script>
 

@@ -3,18 +3,12 @@
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   (function(document) {
-    var Miss, backdrop, colorConvert, coords, extend, gravity, message, miss, prepHex, showHideEl, sortMissies, testEl;
-    miss = function(selector, options) {
-      var defaults, el, els, i, m, msg, opts, sel, title, _i, _len, _ref, _results;
-      if (selector == null) {
-        selector = null;
-      }
-      if (options == null) {
-        options = null;
-      }
+    var Miss, backdrop, colorConvert, coords, extend, gravity, message, miss, prepHex, resize, showHideEl, sortMissies, testEl;
+    miss = function(misset) {
+      var defaults, el, i, k, msg, opts, title, v, _i, _len, _ref, _ref1;
       miss.missies = miss.missies || [];
       if (!miss.global) {
-        miss.settings();
+        miss.settings(misset.settings || null);
       }
       defaults = {
         order: 'series',
@@ -22,32 +16,30 @@
         titlebar_color: '#939393',
         font_color: '#000'
       };
-      if (selector) {
-        els = document.querySelectorAll.call(document, selector);
-        sel = selector.replace(/\./g, '_class_').replace(/\#/g, '_id_').replace(/[^a-zA-Z0-9]/g, '_');
+      if (misset.elements) {
         miss.off();
-        for (i = _i = 0, _len = els.length; _i < _len; i = ++_i) {
-          el = els[i];
-          opts = extend(extend(defaults, options), miss.global);
-          title = opts.title || el.dataset.missTitle || null;
-          msg = message(opts.msg) || message(el.dataset.missMsg) || null;
-          if (!!(title || msg)) {
-            miss.missies.push(new Miss(el, i, opts, title, msg, "miss_" + sel + "_" + i));
+        i = 0;
+        _ref = misset.elements;
+        for (k in _ref) {
+          v = _ref[k];
+          opts = extend(extend(defaults, v), miss.global);
+          _ref1 = document.querySelectorAll.call(document, k);
+          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+            el = _ref1[_i];
+            title = opts.title || el.dataset.missTitle || null;
+            msg = message(opts.msg) || message(el.dataset.missMsg) || null;
+            if (!!(title || msg)) {
+              miss.missies.push(new Miss(el, i = i + 1, opts, title, msg));
+            }
           }
         }
         sortMissies();
         miss.on();
-        _ref = miss.missies;
-        _results = [];
-        for (i in _ref) {
-          m = _ref[i];
-          _results.push(m.on());
-        }
-        return _results;
+        return miss.missies[0].on();
       }
     };
     Miss = (function() {
-      function Miss(el, i, opts, title, msg, sel) {
+      function Miss(el, i, opts, title, msg) {
         this.off = __bind(this.off, this);
         this.on = __bind(this.on, this);
         this.resize = __bind(this.resize, this);
@@ -59,12 +51,12 @@
         this.opts = opts;
         this.title = title;
         this.msg = msg;
-        this.uid = sel;
+        this.index = i;
         this.buildBox();
       }
 
       Miss.prototype.buildBox = function() {
-        var box, msg_box, title_box;
+        var box, msg_box, nav_box, nav_buttons, title_box;
         box = document.createElement('div');
         box.id = "miss_" + this.order;
         box.className = 'miss-box';
@@ -75,6 +67,10 @@
         msg_box = document.createElement('div');
         msg_box.className = 'miss-msg';
         msg_box.innerHTML = this.msg;
+        nav_box = document.createElement('div');
+        nav_box.className = 'miss-nav';
+        nav_buttons = '<button onclick="miss.previous();">previous</button><button onclick="miss.next();">next</button>';
+        nav_box.innerHTML = nav_buttons;
         if (!miss.global.theme) {
           box.style.backgroundColor = this.opts.background_color;
           box.style.borderRadius = "3px";
@@ -86,6 +82,7 @@
         }
         box.appendChild(title_box);
         box.appendChild(msg_box);
+        box.appendChild(nav_box);
         showHideEl(box, false);
         miss.bd.appendChild(box);
         this.box = box;
@@ -93,15 +90,15 @@
       };
 
       Miss.prototype.boxSizing = function() {
-        var bd_visible, box_visible, coord, gravitate;
+        var bd_miss_visible, box_miss_visible, coord, gravitate;
         coord = coords(this.el);
-        bd_visible = miss.bd.visible || null;
-        box_visible = this.box.visible || null;
-        if (!bd_visible) {
+        bd_miss_visible = miss.bd.miss_visible || null;
+        box_miss_visible = this.box.miss_visible || null;
+        if (!bd_miss_visible) {
           miss.bd.style.visibility = 'hidden';
           miss.on();
         }
-        if (!box_visible) {
+        if (!box_miss_visible) {
           this.box.style.visibility = 'hidden';
           showHideEl(this.box, true);
         }
@@ -110,11 +107,11 @@
         gravitate = gravity(coord, this.box.offsetHeight, this.box.offsetWidth);
         this.box.style.top = "" + gravitate.x + "px";
         this.box.style.left = "" + gravitate.y + "px";
-        if (!bd_visible) {
+        if (!bd_miss_visible) {
           miss.bd.style.visibility = '';
           miss.off();
         }
-        if (!box_visible) {
+        if (!box_miss_visible) {
           this.box.style.visibility = '';
           return showHideEl(this.box, false);
         }
@@ -123,8 +120,8 @@
       Miss.prototype.highlight = function() {
         var coord, hl;
         coord = coords(this.el);
-        hl = document.getElementById(this.uid) || document.createElement('div');
-        hl.id = this.uid;
+        hl = document.getElementById("miss_hl_" + this.index) || document.createElement('div');
+        hl.id = "miss_hl_" + this.index;
         hl.style.position = "fixed";
         hl.style.top = "" + (coord.top - this.opts.highlight_width) + "px";
         hl.style.left = "" + (coord.left - this.opts.highlight_width) + "px";
@@ -146,8 +143,10 @@
 
       Miss.prototype.off = function() {
         var hl;
-        hl = document.getElementById(this.uid);
-        hl.parentNode.removeChild(hl);
+        hl = document.getElementById("miss_hl_" + this.index);
+        if (hl) {
+          hl.parentNode.removeChild(hl);
+        }
         return showHideEl(this.box, false);
       };
 
@@ -166,7 +165,7 @@
       } else {
         el.style.display = 'none';
       }
-      return el.visible = toggle;
+      return el.miss_visible = toggle;
     };
     extend = function(objA, objB) {
       var attr;
@@ -418,7 +417,7 @@
         }
       }, set);
     };
-    window.onresize = function() {
+    resize = function() {
       var i, m, _ref, _results;
       _ref = miss.missies;
       _results = [];
@@ -427,6 +426,61 @@
         _results.push(m.resize());
       }
       return _results;
+    };
+    window.onresize = resize();
+    window.onscroll = resize();
+    window.onorientationchange = resize();
+    miss.next = function() {
+      var i, m, _i, _len, _ref;
+      _ref = miss.missies;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        m = _ref[i];
+        if (m.box.miss_visible) {
+          m.off();
+          if (miss.missies[i + 1]) {
+            return miss.missies[i + 1].on();
+          } else {
+            return miss.off();
+          }
+        }
+      }
+    };
+    miss.previous = function() {
+      var i, m, _i, _len, _ref;
+      _ref = miss.missies;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        m = _ref[i];
+        if (m.box.miss_visible) {
+          m.off();
+          if (miss.missies[i - 1]) {
+            return miss.missies[i - 1].on();
+          } else {
+            return miss.off();
+          }
+        }
+      }
+    };
+    miss.first = function() {
+      var m, _i, _len, _ref;
+      _ref = miss.missies;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        m = _ref[_i];
+        if (m.box.miss_visible) {
+          m.off();
+        }
+      }
+      return miss.missies[0].on();
+    };
+    miss.last = function() {
+      var m, _i, _len, _ref;
+      _ref = miss.missies;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        m = _ref[_i];
+        if (m.box.miss_visible) {
+          m.off();
+        }
+      }
+      return miss.missies[miss.missies.length - 1].on();
     };
     miss.on = function() {
       return backdrop(true);
