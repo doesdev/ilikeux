@@ -4,16 +4,17 @@
   miss = (misset) ->
     miss.missies = miss.missies || []
     miss.settings(misset.settings || null) unless miss.global
-    defaults =
+    setDefaults = -> return {
       order: 'series'
       background_color: '#f5f5f5'
       titlebar_color: '#939393'
-      font_color: '#000'
+      font_color: '#000'}
 
     if misset.elements
       miss.off()
       i = 0
       for k, v of misset.elements
+        defaults = setDefaults()
         opts = extend( extend(defaults, v), miss.global)
         for el in document.querySelectorAll.call(document, k)
           title = opts.title || el.dataset.missTitle || null
@@ -27,7 +28,7 @@
   class Miss
     constructor: (el, i, opts, title, msg) ->
       @el = el
-      @order = parseInt(@el.dataset.missOrder) || 100 + i
+      @order = parseInt(@el.dataset.missOrder) || parseInt(opts.order) || 100 + i
       @opts = opts
       @title = title
       @msg = msg
@@ -42,17 +43,21 @@
       box.id = "miss_#{@order}"
       box.className = 'miss-box popover'
       box.style.position = 'fixed'
-      title_box = document.createElement('H3')
+      title_box = document.createElement('div')
       title_box.className = 'miss-titlebar popover-title'
-      title_box.innerHTML = @title
+      close = '<span style="float:right;cursor:pointer;" onclick="miss.off()"
+               class="close" aria-hidden="true">&times;</span>'
+      title_box.innerHTML = @title + close
       msg_box = document.createElement('div')
       msg_box.className = 'miss-msg popover-content'
       msg_box.innerHTML = @msg
       nav_box = document.createElement('div')
-      nav_box.className = 'miss-nav btn-group'
-      nav_buttons = '<button class="btn btn-default" onclick="miss.previous();">prev</button>
-                     <button class="btn btn-primary" onclick="miss.next();">next</button>'
-      nav_box.innerHTML = nav_buttons
+      nav_box.className = 'miss-nav'
+      nav_buttons = '<div class="btn-group">
+                      <button class="btn btn-default" onclick="miss.previous();">prev</button>
+                      <button class="btn btn-default" onclick="miss.next();">next</button></div>'
+      nav_numbers = '<p class="miss-step-num pull-right"></p>'
+      nav_box.innerHTML = nav_buttons + nav_numbers
       # apply (minimal) styling
       unless miss.global.theme
         box.style.backgroundColor = @opts.background_color
@@ -61,6 +66,7 @@
         title_box.style.borderTopLeftRadius = "3px"
         title_box.style.borderTopRightRadius = "3px"
         title_box.style.padding = '8px'
+        nav_box.style.textAlign = 'center'
         msg_box.style.padding = '8px'
       # add them to DOM
       box.appendChild(title_box)
@@ -116,6 +122,7 @@
     on: () =>
       this.highlight()
       showHideEl(@box, true)
+      pageNumbers(@box)
 
     off: () =>
       hl = document.getElementById("miss_hl_#{@index}")
@@ -299,35 +306,43 @@
 
   # Resize events
   resize = () ->
-    m.resize() for i, m of miss.missies
-  window.onresize = resize()
-  window.onscroll = resize()
-  window.onorientationchange = resize()
+    if m = miss.current()
+      m.missie.resize()
+
+  window.onresize = -> resize()
+  window.onscroll = -> resize()
+  window.onorientationchange = -> resize()
 
   # Navigate missies
+  miss.current = () ->
+    for m, i in miss.missies
+      if m.box.miss_visible
+        return {index: i, missie: m}
+
+  pageNumbers = (box) ->
+    if current = miss.current()
+      numbers = box.getElementsByClassName('miss-step-num')[0]
+      numbers.innerHTML = "<p>#{current.index + 1 || 1}/#{miss.missies.length}</p>"
+
   miss.next = () ->
-    for m, i in miss.missies
-      if m.box.miss_visible
-        m.off()
-        if miss.missies[i + 1] then return miss.missies[i + 1].on() else return miss.off()
+    if current = miss.current()
+      current.missie.off()
+      if miss.missies[current.index + 1] then return miss.missies[current.index + 1].on() else return miss.off()
 
-  miss.previous = () ->
-    for m, i in miss.missies
-      if m.box.miss_visible
-        m.off()
-        if miss.missies[i - 1] then return miss.missies[i - 1].on() else return miss.off()
+  miss.previous = () ->->
+    if current = miss.current()
+      current.missie.off()
+      if miss.missies[current.index - 1] then return miss.missies[current.index - 1].on() else return miss.off()
 
-  miss.first = () ->
-    for m in miss.missies
-      if m.box.miss_visible
-        m.off()
-    miss.missies[0].on()
+  miss.first = () ->->
+    if current = miss.current()
+      current.missie.off()
+      miss.missies[0].on()
 
-  miss.last = () ->
-    for m in miss.missies
-      if m.box.miss_visible
-        m.off()
-    miss.missies[miss.missies.length - 1].on()
+  miss.last = () ->->
+    if current = miss.current()
+      current.missie.off()
+      miss.missies[miss.missies.length - 1].on()
 
   # Plugin states
   miss.on = () ->

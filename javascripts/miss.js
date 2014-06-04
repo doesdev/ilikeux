@@ -3,18 +3,20 @@
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   (function(document) {
-    var Miss, backdrop, colorConvert, coords, extend, gravity, message, miss, prepHex, resize, showHideEl, sortMissies, testEl;
+    var Miss, backdrop, colorConvert, coords, extend, gravity, message, miss, pageNumbers, prepHex, resize, showHideEl, sortMissies, testEl;
     miss = function(misset) {
-      var defaults, el, i, k, msg, opts, title, v, _i, _len, _ref, _ref1;
+      var defaults, el, i, k, msg, opts, setDefaults, title, v, _i, _len, _ref, _ref1;
       miss.missies = miss.missies || [];
       if (!miss.global) {
         miss.settings(misset.settings || null);
       }
-      defaults = {
-        order: 'series',
-        background_color: '#f5f5f5',
-        titlebar_color: '#939393',
-        font_color: '#000'
+      setDefaults = function() {
+        return {
+          order: 'series',
+          background_color: '#f5f5f5',
+          titlebar_color: '#939393',
+          font_color: '#000'
+        };
       };
       if (misset.elements) {
         miss.off();
@@ -22,6 +24,7 @@
         _ref = misset.elements;
         for (k in _ref) {
           v = _ref[k];
+          defaults = setDefaults();
           opts = extend(extend(defaults, v), miss.global);
           _ref1 = document.querySelectorAll.call(document, k);
           for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
@@ -47,7 +50,7 @@
         this.boxSizing = __bind(this.boxSizing, this);
         this.buildBox = __bind(this.buildBox, this);
         this.el = el;
-        this.order = parseInt(this.el.dataset.missOrder) || 100 + i;
+        this.order = parseInt(this.el.dataset.missOrder) || parseInt(opts.order) || 100 + i;
         this.opts = opts;
         this.title = title;
         this.msg = msg;
@@ -56,21 +59,23 @@
       }
 
       Miss.prototype.buildBox = function() {
-        var box, msg_box, nav_box, nav_buttons, title_box;
+        var box, close, msg_box, nav_box, nav_buttons, nav_numbers, title_box;
         box = document.createElement('div');
         box.id = "miss_" + this.order;
         box.className = 'miss-box popover';
         box.style.position = 'fixed';
-        title_box = document.createElement('H3');
+        title_box = document.createElement('div');
         title_box.className = 'miss-titlebar popover-title';
-        title_box.innerHTML = this.title;
+        close = '<span style="float:right;cursor:pointer;" onclick="miss.off()" class="close" aria-hidden="true">&times;</span>';
+        title_box.innerHTML = this.title + close;
         msg_box = document.createElement('div');
         msg_box.className = 'miss-msg popover-content';
         msg_box.innerHTML = this.msg;
         nav_box = document.createElement('div');
-        nav_box.className = 'miss-nav btn-group';
-        nav_buttons = '<button class="btn btn-default" onclick="miss.previous();">prev</button> <button class="btn btn-primary" onclick="miss.next();">next</button>';
-        nav_box.innerHTML = nav_buttons;
+        nav_box.className = 'miss-nav';
+        nav_buttons = '<div class="btn-group"> <button class="btn btn-default" onclick="miss.previous();">prev</button> <button class="btn btn-default" onclick="miss.next();">next</button></div>';
+        nav_numbers = '<p class="miss-step-num pull-right"></p>';
+        nav_box.innerHTML = nav_buttons + nav_numbers;
         if (!miss.global.theme) {
           box.style.backgroundColor = this.opts.background_color;
           box.style.borderRadius = "3px";
@@ -78,6 +83,7 @@
           title_box.style.borderTopLeftRadius = "3px";
           title_box.style.borderTopRightRadius = "3px";
           title_box.style.padding = '8px';
+          nav_box.style.textAlign = 'center';
           msg_box.style.padding = '8px';
         }
         box.appendChild(title_box);
@@ -138,7 +144,8 @@
 
       Miss.prototype.on = function() {
         this.highlight();
-        return showHideEl(this.box, true);
+        showHideEl(this.box, true);
+        return pageNumbers(this.box);
       };
 
       Miss.prototype.off = function() {
@@ -409,69 +416,81 @@
       }, set);
     };
     resize = function() {
-      var i, m, _ref, _results;
-      _ref = miss.missies;
-      _results = [];
-      for (i in _ref) {
-        m = _ref[i];
-        _results.push(m.resize());
+      var m;
+      if (m = miss.current()) {
+        return m.missie.resize();
       }
-      return _results;
     };
-    window.onresize = resize();
-    window.onscroll = resize();
-    window.onorientationchange = resize();
-    miss.next = function() {
+    window.onresize = function() {
+      return resize();
+    };
+    window.onscroll = function() {
+      return resize();
+    };
+    window.onorientationchange = function() {
+      return resize();
+    };
+    miss.current = function() {
       var i, m, _i, _len, _ref;
       _ref = miss.missies;
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
         m = _ref[i];
         if (m.box.miss_visible) {
-          m.off();
-          if (miss.missies[i + 1]) {
-            return miss.missies[i + 1].on();
-          } else {
-            return miss.off();
-          }
+          return {
+            index: i,
+            missie: m
+          };
+        }
+      }
+    };
+    pageNumbers = function(box) {
+      var current, numbers;
+      if (current = miss.current()) {
+        numbers = box.getElementsByClassName('miss-step-num')[0];
+        return numbers.innerHTML = "<p>" + (current.index + 1 || 1) + "/" + miss.missies.length + "</p>";
+      }
+    };
+    miss.next = function() {
+      var current;
+      if (current = miss.current()) {
+        current.missie.off();
+        if (miss.missies[current.index + 1]) {
+          return miss.missies[current.index + 1].on();
+        } else {
+          return miss.off();
         }
       }
     };
     miss.previous = function() {
-      var i, m, _i, _len, _ref;
-      _ref = miss.missies;
-      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
-        m = _ref[i];
-        if (m.box.miss_visible) {
-          m.off();
-          if (miss.missies[i - 1]) {
-            return miss.missies[i - 1].on();
+      return function() {
+        var current;
+        if (current = miss.current()) {
+          current.missie.off();
+          if (miss.missies[current.index - 1]) {
+            return miss.missies[current.index - 1].on();
           } else {
             return miss.off();
           }
         }
-      }
+      };
     };
     miss.first = function() {
-      var m, _i, _len, _ref;
-      _ref = miss.missies;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        m = _ref[_i];
-        if (m.box.miss_visible) {
-          m.off();
+      return function() {
+        var current;
+        if (current = miss.current()) {
+          current.missie.off();
+          return miss.missies[0].on();
         }
-      }
-      return miss.missies[0].on();
+      };
     };
     miss.last = function() {
-      var m, _i, _len, _ref;
-      _ref = miss.missies;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        m = _ref[_i];
-        if (m.box.miss_visible) {
-          m.off();
+      return function() {
+        var current;
+        if (current = miss.current()) {
+          current.missie.off();
+          return miss.missies[miss.missies.length - 1].on();
         }
-      }
-      return miss.missies[miss.missies.length - 1].on();
+      };
     };
     miss.on = function() {
       return backdrop(true);
