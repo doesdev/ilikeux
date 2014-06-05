@@ -3,7 +3,7 @@
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   (function(document) {
-    var Miss, backdrop, colorConvert, coords, extend, gravity, message, miss, pageNumbers, prepHex, resize, showHideEl, sortMissies, testEl;
+    var Miss, backdrop, backdropCanvas, colorConvert, coords, extend, gravity, message, miss, pageNumbers, prepHex, resize, showHideEl, sortMissies, testEl;
     miss = function(misset) {
       var defaults, el, i, k, msg, opts, setDefaults, title, v, _i, _len, _ref, _ref1;
       miss.missies = miss.missies || [];
@@ -59,7 +59,7 @@
       }
 
       Miss.prototype.buildBox = function() {
-        var box, close, msg_box, nav_box, nav_buttons, nav_numbers, title_box;
+        var box, close, msg_box, nav_box, nav_buttons, nav_numbers, rgba, title_box;
         box = document.createElement('div');
         box.id = "miss_" + this.order;
         box.className = 'miss-box popover';
@@ -77,8 +77,10 @@
         nav_numbers = '<p class="miss-step-num pull-right"></p>';
         nav_box.innerHTML = nav_buttons + nav_numbers;
         if (!miss.global.theme) {
+          rgba = colorConvert(this.opts.titlebar_color);
           box.style.backgroundColor = this.opts.background_color;
           box.style.borderRadius = "3px";
+          box.style.border = "1px solid rgba(" + rgba.red + ", " + rgba.green + ", " + rgba.blue + ", 0.6)";
           title_box.style.backgroundColor = this.opts.titlebar_color;
           title_box.style.borderTopLeftRadius = "3px";
           title_box.style.borderTopRightRadius = "3px";
@@ -124,21 +126,33 @@
       };
 
       Miss.prototype.highlight = function() {
-        var coord, hl;
+        var coord, ctx, hl, hl_border;
         coord = coords(this.el);
+        hl_border = this.opts.highlight ? this.opts.highlight_width : 0;
         hl = document.getElementById("miss_hl_" + this.index) || document.createElement('div');
         hl.id = "miss_hl_" + this.index;
         hl.style.position = "fixed";
-        hl.style.top = "" + (coord.top - this.opts.highlight_width) + "px";
-        hl.style.left = "" + (coord.left - this.opts.highlight_width) + "px";
-        hl.style.width = "" + (coord.width + this.opts.highlight_width) + "px";
-        hl.style.height = "" + (coord.height + this.opts.highlight_width) + "px";
-        hl.style.border = "" + this.opts.highlight_width + "px solid " + this.opts.highlight_color;
-        return miss.bd.appendChild(hl);
+        hl.style.top = "" + (coord.top - hl_border) + "px";
+        hl.style.left = "" + (coord.left - hl_border) + "px";
+        hl.style.width = "" + (coord.width + hl_border) + "px";
+        hl.style.height = "" + (coord.height + hl_border) + "px";
+        if (this.opts.highlight) {
+          hl.style.border = "" + hl_border + "px solid " + this.opts.highlight_color;
+        }
+        miss.bd.appendChild(hl);
+        ctx = document.getElementById('miss_bd_canvas').getContext('2d');
+        ctx.save();
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.fillRect(coord.left, coord.top, coord.width + hl_border, coord.height + hl_border);
+        ctx.fill();
+        return ctx.restore();
       };
 
       Miss.prototype.resize = function() {
         this.boxSizing();
+        backdropCanvas();
         return this.highlight();
       };
 
@@ -154,6 +168,7 @@
         if (hl) {
           hl.parentNode.removeChild(hl);
         }
+        backdropCanvas();
         return showHideEl(this.box, false);
       };
 
@@ -369,24 +384,36 @@
       };
     };
     backdrop = function(toggle) {
-      var bd, opts, rgb;
+      var bd, opts;
       if (!(bd = document.getElementById('miss_bd'))) {
         opts = miss.global;
-        rgb = colorConvert(opts.backdrop_color);
         bd = document.createElement('div');
         bd.id = 'miss_bd';
-        bd.style.backgroundColor = "rgba(" + rgb.red + ", " + rgb.green + ", " + rgb.blue + ", " + opts.backdrop_opacity + ")";
-        bd.style.position = 'fixed';
-        bd.style.zIndex = opts.z_index;
-        bd.style.top = 0;
-        bd.style.right = 0;
-        bd.style.bottom = 0;
-        bd.style.left = 0;
+        bd.style.cssText = "position:fixed;z-index:" + opts.z_index + ";top:0;right:0;bottom:0;left:0;";
         showHideEl(bd, false);
         document.body.appendChild(bd);
       }
       miss.bd = bd;
+      backdropCanvas();
       return showHideEl(bd, toggle);
+    };
+    backdropCanvas = function() {
+      var bd, canvas, ctx, opts, screen;
+      screen = testEl();
+      opts = miss.global;
+      if (!(canvas = document.getElementById('miss_bd_canvas'))) {
+        bd = miss.bd;
+        canvas = document.createElement('canvas');
+        canvas.id = 'miss_bd_canvas';
+        bd.appendChild(canvas);
+      }
+      canvas.width = screen.width;
+      canvas.height = screen.height;
+      ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.globalAlpha = opts.backdrop_opacity;
+      ctx.fillStyle = "#" + (prepHex(opts.backdrop_color));
+      return ctx.fillRect(0, 0, screen.width, screen.height);
     };
     message = function(msg) {
       var msg_el;
@@ -406,7 +433,7 @@
         key_off: null,
         key_hover: null,
         backdrop_color: '#000',
-        backdrop_opacity: 0.4,
+        backdrop_opacity: 0.5,
         z_index: 2100,
         welcome_title: null,
         welcome_msg: null,
@@ -462,17 +489,15 @@
       }
     };
     miss.previous = function() {
-      return function() {
-        var current;
-        if (current = miss.current()) {
-          current.missie.off();
-          if (miss.missies[current.index - 1]) {
-            return miss.missies[current.index - 1].on();
-          } else {
-            return miss.off();
-          }
+      var current;
+      if (current = miss.current()) {
+        current.missie.off();
+        if (miss.missies[current.index - 1]) {
+          return miss.missies[current.index - 1].on();
+        } else {
+          return miss.off();
         }
-      };
+      }
     };
     miss.first = function() {
       return function() {

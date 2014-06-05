@@ -60,8 +60,10 @@
       nav_box.innerHTML = nav_buttons + nav_numbers
       # apply (minimal) styling
       unless miss.global.theme
+        rgba = colorConvert(@opts.titlebar_color)
         box.style.backgroundColor = @opts.background_color
         box.style.borderRadius = "3px"
+        box.style.border = "1px solid rgba(#{rgba.red}, #{rgba.green}, #{rgba.blue}, 0.6)"
         title_box.style.backgroundColor = @opts.titlebar_color
         title_box.style.borderTopLeftRadius = "3px"
         title_box.style.borderTopRightRadius = "3px"
@@ -105,18 +107,28 @@
 
     highlight: () =>
       coord = coords(@el)
+      hl_border = if @opts.highlight then @opts.highlight_width else 0
       hl = document.getElementById("miss_hl_#{@index}") || document.createElement('div')
       hl.id = "miss_hl_#{@index}"
       hl.style.position = "fixed"
-      hl.style.top = "#{coord.top - @opts.highlight_width}px"
-      hl.style.left = "#{coord.left - @opts.highlight_width}px"
-      hl.style.width = "#{coord.width + @opts.highlight_width}px"
-      hl.style.height = "#{coord.height + @opts.highlight_width}px"
-      hl.style.border = "#{@opts.highlight_width}px solid #{@opts.highlight_color}"
+      hl.style.top = "#{coord.top - hl_border}px"
+      hl.style.left = "#{coord.left - hl_border}px"
+      hl.style.width = "#{coord.width + hl_border}px"
+      hl.style.height = "#{coord.height + hl_border}px"
+      hl.style.border = "#{hl_border}px solid #{@opts.highlight_color}" if @opts.highlight
       miss.bd.appendChild(hl)
+      ctx = document.getElementById('miss_bd_canvas').getContext('2d')
+      ctx.save()
+      ctx.globalAlpha = 1
+      ctx.globalCompositeOperation = 'destination-out'
+      ctx.beginPath()
+      ctx.fillRect(coord.left, coord.top, coord.width + hl_border, coord.height + hl_border)
+      ctx.fill()
+      ctx.restore()
 
     resize: () =>
       this.boxSizing()
+      backdropCanvas()
       this.highlight()
 
     on: () =>
@@ -127,6 +139,7 @@
     off: () =>
       hl = document.getElementById("miss_hl_#{@index}")
       hl.parentNode.removeChild(hl) if hl
+      backdropCanvas()
       showHideEl(@box, false)
 
   # Helpers
@@ -265,17 +278,30 @@
   backdrop = (toggle) ->
     unless bd = document.getElementById('miss_bd')
       opts =  miss.global
-      rgb = colorConvert(opts.backdrop_color)
       bd = document.createElement('div')
       bd.id = 'miss_bd'
-      bd.style.backgroundColor = "rgba(#{rgb.red}, #{rgb.green}, #{rgb.blue}, #{opts.backdrop_opacity})"
-      bd.style.position = 'fixed'
-      bd.style.zIndex = opts.z_index
-      bd.style.top = 0; bd.style.right = 0; bd.style.bottom = 0; bd.style.left = 0
+      bd.style.cssText = "position:fixed;z-index:#{opts.z_index};top:0;right:0;bottom:0;left:0;"
       showHideEl(bd, false)
       document.body.appendChild(bd)
     miss.bd = bd
+    backdropCanvas()
     showHideEl(bd, toggle)
+
+  backdropCanvas = () ->
+    screen = testEl()
+    opts =  miss.global
+    unless canvas = document.getElementById('miss_bd_canvas')
+      bd = miss.bd
+      canvas = document.createElement('canvas')
+      canvas.id = 'miss_bd_canvas'
+      bd.appendChild(canvas)
+    canvas.width = screen.width
+    canvas.height = screen.height
+    ctx = canvas.getContext('2d')
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.globalAlpha = opts.backdrop_opacity
+    ctx.fillStyle = "##{prepHex(opts.backdrop_color)}"
+    ctx.fillRect(0,0,screen.width,screen.height)
 
   # Format message
   message = (msg) ->
@@ -295,7 +321,7 @@
       key_off: null
       key_hover: null
       backdrop_color: '#000'
-      backdrop_opacity: 0.4
+      backdrop_opacity: 0.5
       z_index: 2100
       welcome_title: null
       welcome_msg: null
@@ -329,7 +355,7 @@
       current.missie.off()
       if miss.missies[current.index + 1] then return miss.missies[current.index + 1].on() else return miss.off()
 
-  miss.previous = () ->->
+  miss.previous = () ->
     if current = miss.current()
       current.missie.off()
       if miss.missies[current.index - 1] then return miss.missies[current.index - 1].on() else return miss.off()
