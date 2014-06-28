@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>I Like UX, Andrew Carpenter</title>
+    <link rel="canonical" href="http://www.ilikeux.com">
+    <meta name="description" content="Stuff about me, Andrew Carpenter, and my love for crafting great online experiences.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--<link rel="stylesheet" href="stylesheets/ilikeux.css">-->
+    <!--<link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">-->
+    <script src="javascripts/jquery-2.0.3.min.js"></script>
+</head>
+<body>
+
+<div id="content-wrapper">
+    <header>
+    </header>
+
+    <a class="tut" id="playall" data-miss-title="Play All" data-miss-msg="Begin playback of all audio elements.">play all</a>
+    <br/>
+    <a id="pauseall" class="tut" data-miss-title="Pause" data-miss-msg="Pause all audio playback.">pause all</a>
+    <br/>
+    <a id="stopall" class="tut3" data-miss-title="Stop" data-miss-msg="Stop playback on all audio elements.">stop / unload all</a>
+    <br/>
+    <a id="resetall" class="tut" data-miss-title="Reset All" data-miss-msg="Set playback to 0 and stop.">reset all</a>
+    <br/>
+    <a id="testie" class="tut2" data-miss-title="Reset All" data-miss-msg="#{#tut2-msg-test}">reset all</a>
+    <div hidden id="tut2-msg-test"><p>We added this text in it's own element and we use the hash-curly wrapper around the selector to point miss.js to it. It is a tutorial target (tut2[0]) message body.</p><br>
+        <p>Adding this within a data attribute would be dumb, Because the content is way to big for a data attribute and we are adding child elements to the content.</p>
+        <ul>
+            <li>do not</li>
+            <li>ever</li>
+            <li>try this inside a data attribute</li>
+            <li>because that would be dumb</li>
+        </ul>
+    </div>
+    <br/>
+    <a id="load-defaults" class="tut" data-miss-title="Load Defaults" data-miss-msg="Load up the default audio elements.">re-load</a>
+
+    <footer>
+    </footer>
+
+</div>
+<div id="boxes"></div>
+
+
+<script src="javascripts/player.js"></script>
+<script src="javascripts/miss.js"></script>
+<script>
+    miss({
+        settings: {
+            backdrop_color: '#ff69b4',
+            backdrop_opacity: 0.5
+//            ,theme: 'custom'
+        },
+        elements: {
+            ".tut": null,
+            ".tut2": {order: 2},
+            ".tut3": {
+                order: 3,
+                title: 'alternate title',
+                msg: 'This is an alternative message body, defined in options instead of a data attribute.'
+            }
+        }
+    });
+</script>
+</body>
+</html>
