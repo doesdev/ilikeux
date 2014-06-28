@@ -138,8 +138,8 @@ footer {
 .image-block {
     display: inline-block;
     overflow: hidden;
-    width: 15%;
-    padding: 0.5%;
+    width: 13%;
+    padding: 0.4%;
 }
 
 .image-block:nth-last-child(1) {
