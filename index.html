@@ -20,13 +20,13 @@
     <footer>
         <div id="portfolio">
             <!--<a class="image-block" href="https://www.behance.net/gallery/Musocrat/14821011" target="_blank"><img src="images/musocrat.png" /></a>-->
-            <a class="image-block" href="http://musocrat.com" target="_blank"><img src="images/musocrat.png" /></a>
-            <a class="image-block" href="http://musocrat.github.io/jquery-video-lightning/" target="_blank"><img src="images/jqvl.png" /></a>
-            <a class="image-block" href="https://github.com/musocrat/miss.js/" target="_blank"><img src="images/missjs.png" /></a>
-            <a class="image-block" href="https://www.behance.net/gallery/iOS-Dictation-App/14842621" target="_blank"><img src="images/wcmd-ios.png" /></a>
-            <a class="image-block" href="https://www.behance.net/gallery/If-I-Designed/14822465" target="_blank"><img src="images/ifid.png" /></a>
-            <a class="image-block" href="https://www.behance.net/gallery/Focassign/14822705" target="_blank"><img src="images/focassign.png" /></a>
-            <a class="image-block" href="http://careers.stackoverflow.com/cv/employer/199924" target="_blank"><img src="images/andrew.png" /></a>
+            <a class="image-block tour-a" href="http://musocrat.com" target="_blank"><img src="images/musocrat.png" /></a>
+            <a class="image-block tour-b" href="http://musocrat.github.io/jquery-video-lightning/" target="_blank"><img src="images/jqvl.png" /></a>
+            <a class="image-block tour-c" href="https://github.com/musocrat/miss.js/" target="_blank"><img src="images/missjs.png" /></a>
+            <a class="image-block tour-d" href="https://www.behance.net/gallery/iOS-Dictation-App/14842621" target="_blank"><img src="images/wcmd-ios.png" /></a>
+            <a class="image-block tour-e" href="https://www.behance.net/gallery/If-I-Designed/14822465" target="_blank"><img src="images/ifid.png" /></a>
+            <a class="image-block tour-f" href="https://www.behance.net/gallery/Focassign/14822705" target="_blank"><img src="images/focassign.png" /></a>
+            <a class="image-block tour-g" href="http://careers.stackoverflow.com/cv/employer/199924" target="_blank"><img src="images/andrew.png" /></a>
         </div>
     </footer>
 
@@ -35,6 +35,7 @@
 
 
 <script src="javascripts/jquery-fun-with-boxes.js"></script>
+<script src="javascripts/miss.min.js"></script>
 <script>
     $(function() {
         $("#boxes").jqueryFunWithBoxes({
@@ -47,6 +48,71 @@
             border_same_as_fill: 1,
             animation_time: 5000
         });
+    });
+</script>
+<script>
+    miss({
+        settings: {
+            key_modifier: 'alt',
+            show_on_load: true,
+            backdrop_opacity: 0.7,
+            box_width: '350px',
+            box_height: '250px',
+            theme: 'custom'
+        },
+        elements: {
+            welcome: {
+                title: "About me, Andrew Carpenter",
+                msg: "Welcome. This is a little portfolio of some of the things I've created."
+            },
+            ".tour-a": {
+                order: 1,
+                title: "Musocrat",
+                msg: "<a href='http://musocrat.com' target='_blank'>Musocrat</a> is a platform for crowd-sourced " +
+                        "music. This is my master work. Check it out."
+            },
+            ".tour-b": {
+                order: 2,
+                title: "jQuery Video Lightning",
+                msg: "<a href='http://musocrat.github.io/jquery-video-lightning/' target='_blank'>" +
+                        "jQuery Video Lightning</a> turns any element into a lightbox or popover link for " +
+                        "Youtube and Vimeo videos."
+            },
+            ".tour-c": {
+                order: 3,
+                title: "Miss.js",
+                msg: "Make it simple stupid. Web app walkthroughs for maximum user conversion. This walkthrough " +
+                        "is powered by <a href='https://github.com/musocrat/miss.js/' target='_blank'>Miss.js</a>."
+            },
+            ".tour-d": {
+                order: 3,
+                title: "Dictation for iOS",
+                msg: "This is an <a href='https://www.behance.net/gallery/iOS-Dictation-App/14842621/' target='_blank'>" +
+                        "iOS app</a>. I built at my day job. It allows users to dictate into our cloud " +
+                        "based transcription workflow service."
+            },
+            ".tour-e": {
+                order: 3,
+                title: "If I Designed",
+                msg: "<a href='https://www.behance.net/gallery/If-I-Designed/14822465/' target='_blank'>If I Designed" +
+                        "</a> is little more than design and concept. It will eventually be Musocrat " +
+                        "for design, but is taking a back seat while Musocrat is focused on."
+            },
+            ".tour-f": {
+                order: 3,
+                title: "Focassign",
+                msg: "<a href='https://www.behance.net/gallery/Focassign/14822705/' target='_blank'>Focassign</a> " +
+                        "is my first RoR app. Still fairly incomplete, but it's open source if you want to " +
+                        "contribute. It's a workflow app for task pooling and assignment."
+            },
+            ".tour-g": {
+                order: 3,
+                title: "Stack Overflow Profile",
+                msg: "If you want to know more about me click this link to check out my " +
+                        "<a href='http://careers.stackoverflow.com/cv/employer/199924/' target='_blank'>" +
+                        "Stack Overflow profile</a>."
+            }
+        }
     });
 </script>
 </body>
