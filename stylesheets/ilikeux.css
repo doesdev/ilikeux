@@ -72,6 +72,22 @@ a {
     cursor: pointer;
 }
 
+a:link {
+    color: #000000;
+}
+
+a:visited {
+    color: #000000;
+}
+
+a:hover {
+    color: red;
+}
+
+a:active {
+    color: #000000;
+}
+
 /* Shared Classes */
 .text-centered {
     text-align: center;
@@ -150,4 +166,51 @@ footer {
 .image-block img {
     display: block;
     width: 100%;
+}
+
+.miss-box {
+    background: #ffffff;
+    border-radius: 3px;
+}
+.miss-titlebar {
+    background: #000000;
+    color: #ffffff;
+    height: 45px;
+    text-align: center;
+    font-size: 22px;
+    line-height: 2;
+}
+.miss-close {
+    font-size: 1.6em;
+    line-height: 1.4;
+    margin-right: 8px;
+}
+.miss-msg {
+    padding: 8px;
+    font-size: 16px;
+    line-height: 1.4;
+}
+.miss-nav {
+    position: absolute;
+    bottom: 8px;
+}
+.btn-group {
+    padding-bottom: 8px;
+}
+.btn {
+    width: 100px;
+    height: 35px;
+}
+.miss-prev, .miss-next {
+    background: #000000;
+    color: #ffffff;
+}
+.miss-done {
+    margin-left: 20px;
+    background: #ffffff;
+    color: #000000;
+}
+.miss-step-num {
+    position: relative;
+    text-align: center;
 }
