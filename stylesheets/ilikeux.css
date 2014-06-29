@@ -157,6 +157,9 @@ footer {
     width: 13%;
     padding: 0.4%;
 }
+.image-block:hover {
+    transform: scale(1.02);
+}
 
 .image-block:nth-last-child(1) {
     position: absolute;
