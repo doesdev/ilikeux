@@ -84,7 +84,7 @@
               <div id="player-col-1"></div>
               <div id="player-col-2">
                 <div id="player-outer-circle"></div>
-                <div id="player-inner-circle" class="tut2" data-miss-order="2" data-miss-title="test title" data-miss-msg="#{#tut2-msg-test}">
+                <div id="player-inner-circle" class="tut2" data-miss-order="2" data-miss-title="test title">
                     <div hidden id="tut2-msg-test"><p>We added this text in it's own element and we use the hash-curly wrapper around the selector to point miss.js to it. It is a tutorial target (tut2[0]) message body.</p><br>
                         <p>Adding this within a data attribute would be dumb, Because the content is way to big for a data attribute and we are adding child elements to the content.</p>
                         <ul>
@@ -186,19 +186,36 @@
       </div>
     </div>
   </div>
-  <div id="footer"></div>
+  <div id="footer"><p id="show_miss" class="text-orange right">Help</p></div>
   <script data-turbolinks-track="true" src="javascripts/musocrat.js"></script>
-  <script src="javascripts/player.js"></script>
-  <script src="javascripts/miss.js"></script>
+  <!--<script src="javascripts/player.js"></script>-->
+  <script src="../miss/src/miss.js"></script>x
   <script>
       miss({
           settings: {
               backdrop_color: '#000',
-              backdrop_opacity: 0.6
+              backdrop_opacity: 0.6,
+			  box_width: '300px',
+			  box_height: '300px',
+			  key_modifier: 'alt',
+			  trigger_el: '#show_miss',
+			  app_location: 'test_mc_home',
+              //check_url: 'json/user.json',
+              //check_keyname: 'tour',
+              always_show: true,
+              show_on_load: true
           },
           elements: {
+			  welcome: {
+                  title: 'Welcome to Musocrat',
+                  msg: 'Miss JS will be showing you around. Follow her for the full tour or exit and jump in at any time.'
+			  },
+			  exit: {
+                  title: 'Enjoy Your Stay',
+                  msg: 'Thanks for sticking around for the tour. We hope you enjoy doing cool things on the site.'
+			  },
               ".tut": null,
-              ".tut2": {order: 2},
+              ".tut2": {order: 2, msg: "#{#tut2-msg-test}"},
               ".tut3": {
                   order: 3,
                   title: 'alternate title',

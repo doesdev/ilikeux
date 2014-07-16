@@ -316,7 +316,7 @@
     $("#unloadall").on('click', function() {
       return musocrat.composer('unloadall');
     });
-    test_parts = function() {
+    return test_parts = function() {
       return musocrat.composer('load', [
         {
           id: 68,
@@ -345,7 +345,6 @@
         }
       ]);
     };
-    return test_parts();
   });
 
 }).call(this);

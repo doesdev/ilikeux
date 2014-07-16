@@ -7,7 +7,7 @@
     <meta name="description" content="Stuff about me, Andrew Carpenter, and my love for crafting great online experiences.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!--<link rel="stylesheet" href="stylesheets/ilikeux.css">-->
-    <!--<link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">-->
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
     <script src="javascripts/jquery-2.0.3.min.js"></script>
 </head>
 <body>
@@ -38,20 +38,28 @@
     <a id="load-defaults" class="tut" data-miss-title="Load Defaults" data-miss-msg="Load up the default audio elements.">re-load</a>
 
     <footer>
+        <p class="show_miss text-orange right">Help</p>
+        <p class="show_miss text-orange right">Help 2</p>
+        <p class="show_miss text-orange right">Help3</p>
+        <p class="show_miss text-orange right">Help 4</p>
+        <p class="show_miss text-orange right">Help 5</p>
     </footer>
 
 </div>
 <div id="boxes"></div>
 
 
-<script src="javascripts/player.js"></script>
-<script src="javascripts/miss.js"></script>
+<!--<script src="javascripts/player.js"></script>-->
+<script src="../miss/src/miss.js"></script>
 <script>
     miss({
         settings: {
             backdrop_color: '#ff69b4',
-            backdrop_opacity: 0.5
-//            ,theme: 'custom'
+            backdrop_opacity: 0.5,
+            key_modifier: 'alt',
+            trigger_el: '.show_miss',
+            show_on_load: true
+            ,theme: 'custom'
         },
         elements: {
             ".tut": null,
@@ -59,7 +67,8 @@
             ".tut3": {
                 order: 3,
                 title: 'alternate title',
-                msg: 'This is an alternative message body, defined in options instead of a data attribute.'
+                msg: 'This is an alternative message body, defined in options instead of a data attribute.',
+				background_color: '#ebc2e0'
             }
         }
     });
